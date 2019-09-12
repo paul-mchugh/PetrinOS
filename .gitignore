@@ -1,0 +1,6 @@
+*.o
+*.asm
+GDB*
+make.orig
+Makefile
+*.dli
