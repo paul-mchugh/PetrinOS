@@ -1,11 +1,11 @@
 // ksr.h, 159
 
-#ifndef ...
-#define ...
+#ifndef _KSR_
+#define _KSR_
 
-#include "...
+#include "const-type.h"
 
-void ...
-void ...
+void SpawnSR(func_p_t p);
+void TimerSR(void);
 
 #endif
