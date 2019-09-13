@@ -4,10 +4,10 @@
 
 #include "spede.h"
 #include "const-type.h"
-#include "entry.h"    // entries to kernel (TimerEntry, etc.)
-#include "tools.h"    // small handy functions
-#include "ksr.h"      // kernel service routines
-#include "proc.h"     // all user process code here
+#include "entry.h"		// entries to kernel (TimerEntry, etc.)
+#include "tools.h"		// small handy functions
+#include "ksr.h"		// kernel service routines
+#include "proc.h"		// all user process code here
 
 // declare kernel data
 int run_pid;					// current running PID
