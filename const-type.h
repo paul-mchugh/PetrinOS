@@ -23,16 +23,23 @@ typedef void (*func_p_t)(void); // void-return function pointer type
 
 typedef enum {AVAIL, READY, RUN} state_t;
 
-define a trapframe type (tf_t) that has these 'unsigned int'
-      eax, ecx, edx, ebx, esp, ebp, esi, edi, eip, cs, efl
+typedef struct
+{
+	unsigned int eax, ecx, edx, ebx, esp, ebp, esi, edi, eip, cs, efl;
+} tf_t;
 
-define a PCB type (pcb_t) that has 
-   state_t state
-   tf_t *tf_p
-   unsigned int time_count and total_time
+typedef struct
+{
+	state_t state;
+	tf_t *tf_p;
+	unsigned int time_count, total_time;
+} pcb_t;
 
-define a queue type (que_t) that has an integer 'tail' and an integer
-array 'que' in it, the dimension of 'que' is QUE_MAX
+typedef struct
+{
+	int que[QUE_MAX];
+	int tail;
+} que_t;
 
 #endif                          // to prevent name mangling
 

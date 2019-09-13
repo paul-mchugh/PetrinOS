@@ -3,11 +3,17 @@
 #ifndef _TOOLS_
 #define _TOOLS_
 
-#include "..." // need definition of 'que_t' below
+#include "const-type.h" // need definition of 'que_t' below
 
-void EnQue(int data, que_t *p);
-int DeQue(que_t *p);
-...
+#define KPANIC_UCOND(S) cons_printf("%s",S); breakpoint()
+#define KPANIC(C,S) if(C) { KPANIC_UCOND(S); }
+
+int	QueEmpty(que_t* que)
+int	QueFull(que_t* que)
+void	DeQue(int data, que_t *que);
+int	EnQue(que_t *que);
+void	Bzero(char* ptr, unsigned int max)
+void	MemCpy(char* dst, char* src, unsigned int max)
 
 #endif
 
