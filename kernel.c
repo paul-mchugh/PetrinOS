@@ -1,6 +1,6 @@
 // kernel.c, 159, phase 1
 //
-// Team Name: ??????? (Members: ??????...)
+// Team Name: PetrinOS (Members: 2)
 
 #include "spede.h"
 #include "const-type.h"
@@ -10,57 +10,71 @@
 #include "proc.h"     // all user process code here
 
 // declare kernel data
-declare an integer: run_pid;  // current running PID
-declare 2 queues: avail_que and ready_que;  // avail PID and those created/ready to run
-declare an array of PCB type: pcb[PROC_MAX];  // Process Control Blocks
+int run_pid;					// current running PID
+que_t avail_que, ready_que;		// avail PID and those created/ready to run
+pcb_t pcb[PROC_MAX];			// Process Control Blocks
+unsigned int sys_time_count;	// total time system has been up
+struct i386_gate *idt;			// interrupt descriptor table
 
-declare an unsigned integer: sys_time_count
-struct i386_gate *idt;         // interrupt descriptor table
+void BootStrap(void)	// set up kernel!
+{
+	int i=0;
+	sys_time_count=0;
 
-void BootStrap(void) {         // set up kernel!
-   set sys time count to zero
+	Bzero((char *)&avail_que, sizeof(que_t));
+	Bzero((char *)&ready_que, sizeof(que_t));
+	//enqueue all the available PID numbers to avail queue(none yet)
+	for(int i=0;i<PROC_MAX;i++) EnQue(i,avail_que);
 
-   call tool Bzero((char *)&avail_que, sizof(que_t)) to clear avail queue
-   call tool Bzero() to clear ready queue
-   enqueue all the available PID numbers to avail queue
-
-   get IDT location
-   addr of TimerEntry is placed into proper IDT entry
-   send PIC control register the mask value for timer handling
+	//setup IDT/get IDT location
+	idt = get_idt_base();
+	//addr of TimerEntry is placed into proper IDT entry
+	fill_gate(&idt[TIMER_EVENT], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
+	//send PIC control register the mask value for timer handling
+	outportb(PIC_MASK_REG, PIC_MASK_VAL);
 }
 
-int main(void) {               // OS starts
-   do the boot strap things 1st
+int main(void)		// OS starts
+{
+	//do the boot strap things 1st
+	BootStrap();
 
-   SpawnSR(Idle);              // create Idle thread
-   set run_pid to IDLE
-   call Loader() to load the trapframe of Idle
+	SpawnSR(Idle);	// create Idle thread
+	run_pid = IDLE;
+	Loader()
 
-   return 0; // never would actually reach here
+	return 0;		// never would actually reach here
 }
 
-void Scheduler(void) {              // choose a run_pid to run
-   if(run_pid > IDLE) return;       // a user PID is already picked
+void Scheduler(void)	// choose a run_pid to run
+{
+	if(run_pid > IDLE) return;	// a user PID is already picked
 
-   if(QueEmpty(&ready_que)) {
-      run_pid = IDLE;               // use the Idle thread
-   } else {
-      pcb[IDLE].state = READY;
-      run_pid = DeQue(&ready_que);  // pick a different proc
-   }
+	if(QueEmpty(&ready_que))
+	{
+		run_pid = IDLE;		// use the Idle thread
+	}
+	else
+	{
+		pcb[IDLE].state = READY;
+		run_pid = DeQue(&ready_que);	// pick a different proc
+	}
 
-   pcb[run_pid].time_count = 0;     // reset runtime count
-   pcb[run_pid].state = RUN;
+	pcb[run_pid].time_count = 0;	// reset runtime count
+	pcb[run_pid].state = RUN;
 }
 
-void Kernel(tf_t *tf_p) {       // kernel runs
-   copy tf_p to the trapframe ptr (in PCB) of the process in run
+void Kernel(tf_t *tf_p)		// kernel runs
+	//copy tf_p to the trapframe ptr (in PCB) of the process in run
+	pcb[run_pid]->tf_p = *tf_p;
 
-   call the timer service routine
+	//call the timer service routine
+	TimerSR();
 
-   if 'b' key on target PC is pressed, goto the GDB prompt
+	// 'b' key on target PC is pressed, goto the GDB prompt
+	if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
 
-   call Scheduler() to change run_pid if needed
-   call Loader() to load the trapframe of the selected process
+	Scheduler();
+	Loader();
 }
 
