@@ -64,7 +64,8 @@ void Scheduler(void)	// choose a run_pid to run
 	pcb[run_pid].state = RUN;
 }
 
-void Kernel(tf_t *tf_p)	{	// kernel runs
+void Kernel(tf_t *tf_p)		// kernel runs
+{
 	//copy tf_p to the trapframe ptr (in PCB) of the process in run
 	pcb[run_pid].tf_p = tf_p;
 
