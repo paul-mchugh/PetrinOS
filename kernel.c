@@ -18,13 +18,13 @@ struct i386_gate *idt;			// interrupt descriptor table
 
 void BootStrap(void)	// set up kernel!
 {
-	int i=0;
+	int i;
 	sys_time_count=0;
 
 	Bzero((char *)&avail_que, sizeof(que_t));
 	Bzero((char *)&ready_que, sizeof(que_t));
 	//enqueue all the available PID numbers to avail queue(none yet)
-	for(int i=0;i<PROC_MAX;i++) EnQue(i,avail_que);
+	for(i=0;i<PROC_MAX;i++) EnQue(i,&avail_que);
 
 	//setup IDT/get IDT location
 	idt = get_idt_base();
@@ -41,7 +41,7 @@ int main(void)		// OS starts
 
 	SpawnSR(Idle);	// create Idle thread
 	run_pid = IDLE;
-	Loader()
+	Loader(pcb[run_pid].tf_p);
 
 	return 0;		// never would actually reach here
 }
@@ -64,9 +64,9 @@ void Scheduler(void)	// choose a run_pid to run
 	pcb[run_pid].state = RUN;
 }
 
-void Kernel(tf_t *tf_p)		// kernel runs
+void Kernel(tf_t *tf_p)	{	// kernel runs
 	//copy tf_p to the trapframe ptr (in PCB) of the process in run
-	pcb[run_pid]->tf_p = *tf_p;
+	pcb[run_pid].tf_p = tf_p;
 
 	//call the timer service routine
 	TimerSR();
@@ -75,6 +75,6 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
 
 	Scheduler();
-	Loader();
+	Loader(pcb[run_pid].tf_p);
 }
 

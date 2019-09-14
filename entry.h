@@ -11,11 +11,10 @@ __BEGIN_DECLS
 #include "const-type.h"		// tf_t below needs it
 
 void TimerEntry(void);		// coded in entry.S, assembler won't like this syntax
-void Loader(tf_t *);		X// coded in entry.S
+void Loader(tf_t *);		// coded in entry.S
 
 __END_DECLS
 
 #endif // ifndef ASSEMBLER
 
 #endif // ifndef __K_ENTRY__
-

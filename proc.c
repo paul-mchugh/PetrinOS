@@ -27,12 +27,12 @@ void Idle(void)
 	{
 		if(flag == 0)
 		{
-			((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | '.';
+			*((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | '.';
 			flag = 1;
 		}
 		else
 		{
-			((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | ' ';
+			*((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | ' ';
 			flag = 0;
 		}
 	}

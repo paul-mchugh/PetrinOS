@@ -24,7 +24,7 @@ int QueFull(que_t* que)
 int DeQue(que_t* que)
 {
 	int bak;
-	int i;
+	//int i;	// currently unused
 
 	if(que->tail==-1) return -1;
 	bak = que->que[que->tail];
@@ -39,7 +39,7 @@ int DeQue(que_t* que)
 //and go into the GDB:
 void EnQue(int data, que_t* que)
 {
-	KPANIC(que->tail==MAX_QUE, "Panic: queue is full, cannot EnQue!\n");
+	KPANIC(que->tail==QUE_MAX, "Panic: queue is full, cannot EnQue!\n");
 
 	que->que[que->tail] = data;
 	que->tail++;
