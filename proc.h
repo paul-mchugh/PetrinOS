@@ -1,8 +1,8 @@
 // proc.h, 159
 
-#ifndef ...
-#define ...
+#ifndef _PROC_
+#define _PROC_
 
-...
+void Idle(void);
 
 #endif

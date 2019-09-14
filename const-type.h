@@ -18,6 +18,7 @@
 #define NONE -1					// to indicate none
 #define IDLE 0					// Idle thread PID 0
 #define DRAM_START 0xe00000		// 14 MB
+#define VGA_MEM_START 0xb8000	// The start of video memory
 
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
