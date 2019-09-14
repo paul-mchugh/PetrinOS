@@ -24,10 +24,9 @@ int QueFull(que_t* que)
 int DeQue(que_t* que)
 {
 	int bak;
-	int i;
 
 	if(que->tail==-1) return -1;
-	bak = que->que[que->tail];
+	bak = que->que[0];
 	que->tail--;
 	MemCpy((char*)&que->que[0], (char*)&que->que[1], (QUE_MAX-1)*sizeof(int));
 	return bak;
@@ -39,7 +38,7 @@ int DeQue(que_t* que)
 //and go into the GDB:
 void EnQue(int data, que_t* que)
 {
-	KPANIC(que->tail==MAX_QUE, "Panic: queue is full, cannot EnQue!\n");
+	KPANIC(que->tail==QUE_MAX, "Panic: queue is full, cannot EnQue!\n");
 
 	que->que[que->tail] = data;
 	que->tail++;
@@ -54,7 +53,11 @@ void Bzero(char* ptr, unsigned int max)
 	char* end;
 
 	end = ptr + max;
-	while(ptr!=end) *ptr=0;
+	while(ptr!=end)
+	{
+		*ptr=0;
+		ptr++;
+	}
 }
 
 //code a MemCpy() function to copy a memory region located at a given
@@ -71,15 +74,15 @@ void MemCpy(char* dst, char* src, unsigned int max)
 
 	//this determines the direction in which we copy the data.
 	//doing so allows us to copy to overlapping arrays
-	if(dst>src)
+	if(dst<src)
 	{
-		//if dst's address is greater than that of src then we copy
+		//if dst's address is less than that of src then we copy
 		//from start to end
 		for(i=0;i<max;i++) dst[i]=src[i];
 	}
 	else
 	{
-		//if dst's address is less than that of src then we copy from
+		//if dst's address is greater than that of src then we copy from
 		//end to start
 		for(i=max-1;i>=0;i--) dst[i]=src[i];
 	}

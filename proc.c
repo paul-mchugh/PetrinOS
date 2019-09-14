@@ -23,17 +23,21 @@ boldface writing.
 void Idle(void)
 {
 	int flag = 0;
-	if(sys_time_count % 100 == 0)
+	unsigned short* vga = (unsigned short*)((char*)VGA_MEM_START)+1;
+	while(1)
 	{
-		if(flag == 0)
+		if(sys_time_count % 100 == 0)
 		{
-			((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | '.';
-			flag = 1;
-		}
-		else
-		{
-			((unsigned short*) VGA_MEM_START) = VGA_MASK_VAL | ' ';
-			flag = 0;
+			if(flag == 0)
+			{
+				*vga = VGA_MASK_VAL | '.';
+				flag = 1;
+			}
+			else
+			{
+				*vga = VGA_MASK_VAL | ' ';
+				flag = 0;
+			}
 		}
 	}
 }
