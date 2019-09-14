@@ -18,7 +18,7 @@ struct i386_gate *idt;			// interrupt descriptor table
 
 void BootStrap(void)	// set up kernel!
 {
-	int i=0;
+	int i;
 	sys_time_count=0;
 
 	Bzero((char *)&avail_que, sizeof(que_t));
@@ -64,10 +64,10 @@ void Scheduler(void)	// choose a run_pid to run
 	pcb[run_pid].state = RUN;
 }
 
-void Kernel(tf_t *tf_p)		// kernel runs
-{
+void Kernel(tf_t *tf_p)	{	// kernel runs
 	//copy tf_p to the trapframe ptr (in PCB) of the process in run
-	*pcb[run_pid].tf_p = *tf_p;
+	pcb[run_pid].tf_p = tf_p;
+
 	//call the timer service routine
 	TimerSR();
 

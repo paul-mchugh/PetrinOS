@@ -18,4 +18,3 @@ __END_DECLS
 #endif // ifndef ASSEMBLER
 
 #endif // ifndef __K_ENTRY__
-

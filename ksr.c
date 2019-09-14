@@ -22,7 +22,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	if(pid != IDLE) EnQue(pid, &ready_que);
 
 	//use a tool function to copy from 'p' to DRAM_START, for STACK_MAX bytes
-	MemCpy((char *)DRAM_START, (char *)Idle, STACK_MAX);
+	MemCpy((char *)DRAM_START, (char *)p, STACK_MAX);
 
 	//create trapframe for process 'pid:'
 	//1st position trapframe pointer in its PCB to the end of the stack
@@ -46,7 +46,7 @@ void TimerSR(void)
 	if (pcb[run_pid].time_count==TIME_MAX)
 	{
 		EnQue(run_pid, &ready_que);
-		//TODO: chech to make sure I did this right: //alter its state to indicate it is not running but ...
+		//TODO: check to make sure I did this right: //alter its state to indicate it is not running but ...
 		pcb[run_pid].state = READY;
 		pcb[run_pid].time_count = 0;
 		run_pid = NONE;
