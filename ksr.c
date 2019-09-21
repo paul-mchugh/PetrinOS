@@ -43,6 +43,17 @@ void TimerSR(void)
 	pcb[run_pid].time_count++;		//increment process contiguous run time
 	pcb[run_pid].total_time++;		//increment process total run time
 
+	int i;
+	for (i = 0; i < PROC_MAX; i++) {
+		if (pcb[i].state == RUN) {
+			if (sys_time_count == pcb[i].total_time) {
+				pcb[i].state = READY;
+				EnQue(i, &ready_que);
+			}
+		}
+	} 
+	
+	if (run_pid == IDLE) return;
 	if (pcb[run_pid].time_count==TIME_MAX)
 	{
 		EnQue(run_pid, &ready_que);

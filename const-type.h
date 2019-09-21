@@ -20,13 +20,21 @@
 #define DRAM_START 0xe00000		// 14 MB
 #define VGA_MEM_START 0xb8000	// The start of video memory
 
+#define SYSCALL_EVENT 128
+#define SYS_GET_PID 129
+#define SYS_GET_TIME 130
+#define SYS_SLEEP 131
+#define SYS_WRITE 132
+#define VIDEO_START (unsigned short *) 0xb8000		// yes I know VGA_MEM_START exists, but in line with p-code
+#define VIDEO_END ((unsigned short *)0xb8000 + 25 * 80)
+
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
 typedef enum {AVAIL, READY, RUN} state_t;
 
 typedef struct
 {
-	unsigned int eax, ecx, edx, ebx, esp, ebp, esi, edi, eip, cs, efl;
+	unsigned int eax, ecx, edx, ebx, esp, ebp, esi, edi, event, eip, cs, efl;
 } tf_t;
 
 typedef struct
