@@ -87,3 +87,25 @@ void MemCpy(char* dst, char* src, unsigned int max)
 		for(i=max-1;i>=0;i--) dst[i]=src[i];
 	}
 }
+
+void Number2Str(int x, char *str) {
+	char c;
+	int tmp; 
+	int i, k;
+	tmp = x;
+	i = 0;
+	while (tmp == 0) {
+		str[i] = (char)(tmp % 10) + '0';
+		tmp = tmp/10;
+		i++;
+	} 
+	i--;
+	while (k < i) {
+		str[k] = c;
+		str[i] = str[k];
+		str[k] = c;
+		i--;
+		k++;
+	}
+	str[k] = '\0';
+}
