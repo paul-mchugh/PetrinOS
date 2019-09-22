@@ -11,10 +11,12 @@ ENTRY(Loader)
 	movl 4(%esp), %ecx				// copy what's above stack pointer
 	movl %ecx, %esp					// copy to esp (point esp to trapframe)
 	popa							// pop all: edi esi ebp esp ebx edx ecx eax
+	addl $4, %esp					// skip 'event' in the trapframe
 	iret							// pop eip, cs, efl
 
 // build/push trapframe then event/intr occurs, and then go into kernel
 ENTRY(TimerEntry)					// push efl, cs, eip by hardware
+	pushl $32						// push the event id
 	pusha							// push all: eax ecx edx ebx esp ebp esi edi
 	movl %esp, %ecx					// copy esp
 	movw $0x10, %ax					// put 16 to ax
@@ -25,3 +27,14 @@ ENTRY(TimerEntry)					// push efl, cs, eip by hardware
 	cld								// clear direction flag bit
 	call CNAME(Kernel)				// call C function: void Kernel(given ecx value) {
 
+ENTRY(SyscallEntry)					// similar to timer entry
+	pushl $128						//push the event id
+	pusha
+	movl %esp, %ecx
+	movw $0x10, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	leal kstack+KSTACK_MAX, %esp
+	push %ecx
+	cld
+	call CNAME(Kernel)

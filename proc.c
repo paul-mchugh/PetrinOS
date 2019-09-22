@@ -23,7 +23,7 @@ boldface writing.
 void Idle(void)
 {
 	int flag = 0;
-	unsigned short* vga = (unsigned short*)((char*)VGA_MEM_START)+1;
+	unsigned short* vga = VIDEO_START;
 	while(1)
 	{
 		if(sys_time_count % 100 == 0)
