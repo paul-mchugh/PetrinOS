@@ -36,6 +36,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 // count run time and switch if hitting time limit
 void TimerSR(void)
 {
+	int i;
 	//1st notify PIC control register that timer event is now served
 	outportb(PIC_CONT_REG, TIMER_SERVED_VAL);
 
@@ -43,6 +44,16 @@ void TimerSR(void)
 	pcb[run_pid].time_count++;		//increment process contiguous run time
 	pcb[run_pid].total_time++;		//increment process total run time
 
+	for (i = 0; i < PROC_MAX; i++) {
+		if (pcb[i].state == RUN) {
+			if (sys_time_count == pcb[i].total_time) {
+				pcb[i].state = READY;
+				EnQue(i, &ready_que);
+			}
+		}
+	}
+
+	if (run_pid == IDLE) return;
 	if (pcb[run_pid].time_count==TIME_MAX)
 	{
 		EnQue(run_pid, &ready_que);
