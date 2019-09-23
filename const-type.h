@@ -20,8 +20,8 @@
 #define DRAM_START 0xe00000		// 14 MB
 #define VGA_MEM_START 0xb8000	// The start of video memory
 
-#define SYSCALL_EVENT 128       // syscall event identifier code, phase2
-#define SYS_GET_PID 129         // different types of syscalls
+#define SYSCALL_EVENT 128		// syscall event identifier code, phase2
+#define SYS_GET_PID 129			// different types of syscalls
 #define SYS_GET_TIME 130
 #define SYS_SLEEP 131
 #define SYS_WRITE 132

@@ -90,7 +90,7 @@ void MemCpy(char* dst, char* src, unsigned int max)
 
 void Number2Str(int x, char *str) {
 	char c;
-	int tmp; 
+	int tmp;
 	int i, k;
 	tmp = x;
 	i = 0;
@@ -98,7 +98,7 @@ void Number2Str(int x, char *str) {
 		str[i] = (char)(tmp % 10) + '0';
 		tmp = tmp/10;
 		i++;
-	} 
+	}
 	i--;
 	while (k < i) {
 		str[k] = c;
