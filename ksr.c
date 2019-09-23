@@ -100,7 +100,7 @@ void SysWrite(void)
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
 	while (*str == '\0')
 	{
-		*sys_cursor = VGA_MASK_VAL || *str;
+		*sys_cursor = VGA_MASK_VAL | *str;
 		//increment the cursor and string position
 		str++;
 		sys_cursor++;

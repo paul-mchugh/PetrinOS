@@ -8,6 +8,7 @@
 #define PIC_MASK_VAL ~0x01		// mask code for PIC
 #define PIC_CONT_REG 0x20		// I/O loc # of PIc control
 #define TIMER_SERVED_VAL 0x60	// control code sent to PIC
+#define VGA_MASK_VAL 0x0f00		// bold face, white on black
 
 #define TIME_MAX 310			// max timer count, then rotate process
 #define PROC_MAX 20				// max number of processes
@@ -17,7 +18,6 @@
 #define NONE -1					// to indicate none
 #define IDLE 0					// Idle thread PID 0
 #define DRAM_START 0xe00000		// 14 MB
-#define VGA_MEM_START 0xb8000	// The start of video memory
 
 #define SYSCALL_EVENT 128		// syscall event identifier code, phase2
 #define SYS_GET_PID 129			// different types of syscalls

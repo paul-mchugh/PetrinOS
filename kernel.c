@@ -74,7 +74,7 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	pcb[run_pid].tf_p = tf_p;
 
 	//handle the interrupt by invoking hte appropriate event
-	switch(pcb[run_pid].tf_p)
+	switch(pcb[run_pid].tf_p->event)
 	{
 	case TIMER_EVENT:
 		TimerSR();

@@ -14,7 +14,7 @@ int		DeQue(que_t *que);
 void	EnQue(int data, que_t *que);
 void	Bzero(char* ptr, unsigned int max);
 void	MemCpy(char* dst, char* src, unsigned int max);
-void 	Number2Str(int,char*);
+void 	Number2Str(int n, char *res);
 
 #endif
 
