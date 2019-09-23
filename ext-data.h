@@ -10,7 +10,7 @@
 
 
 extern int run_pid;					// PID of current selected running process
-extern int *sys_cursor;
+extern short *sys_cursor;			// pointer to the current place pointed to by the cursor
 extern que_t avail_que;				// available PID
 extern que_t ready_que;				// those created/ready to run
 extern pcb_t pcb[PROC_MAX];			// Process Control Blocks

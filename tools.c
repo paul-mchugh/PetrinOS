@@ -88,24 +88,41 @@ void MemCpy(char* dst, char* src, unsigned int max)
 	}
 }
 
-void Number2Str(int x, char *str) {
-	char c;
-	int tmp; 
-	int i, k;
-	tmp = x;
-	i = 0;
-	while (tmp == 0) {
-		str[i] = (char)(tmp % 10) + '0';
-		tmp = tmp/10;
-		i++;
-	} 
-	i--;
-	while (k < i) {
-		str[k] = c;
-		str[i] = str[k];
-		str[k] = c;
-		i--;
-		k++;
+//the maximum number of chars this function will use is 12 (when n=is a low negative number)
+//1 char for the '-' sign, 10 chars for the number, and 1 char for the \0
+void Number2Str(int n, char *res)
+{
+	int i;
+	char digit;
+	char minValStr[] = "-2147483648";
+	//if n is the minimum 32-bit int value we can not multiply by -1, so this is a special case
+	if(n==~((int)0))
+	{
+		for(i=0;i<sizeof(minValStr);i++)
+		{
+			res[i]=minValStr[i];
+		}
+		return;
 	}
-	str[k] = '\0';
+
+	//if the number is negative add a - to the output and multiply by -1
+	if(n<0)
+	{
+		*res = '-';
+		++res;
+		n*=-1;
+	}
+
+	//build the number by checking each digit decending from the tenth digit
+	for(i = 1000000000;i>0;i/=10)
+	{
+		digit = n/i;
+		if(digit==0) continue; //don't advance if this digit is empty
+		*res=digit+'0';
+		n%=i;
+		++res;
+	}
+
+	//set the NUL byte at the end of the string
+	*res=(char)0;
 }
