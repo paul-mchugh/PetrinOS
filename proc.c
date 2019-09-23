@@ -3,6 +3,8 @@
 
 #include "const-type.h"
 #include "ext-data.h"
+#include "proc.h"
+#include "syscall.h"
 
 /*
 Code an Idle() function that doesn't have any input or return, but just
@@ -42,3 +44,23 @@ void Idle(void)
 	}
 }
 
+void Init(void) {
+	int my_pid, os_time;
+	char pid_str[20];
+	char time_str[20];
+
+	my_pid = sys_get_pid();
+	Number2Str(my_pid, pid_str);
+	while (1) {
+		sys_write("my PID is ");
+		sys_write(pid_str);
+		sys_write("... ");
+		sys_sleep(1);
+		os_time = sys_get_time();
+		Number2Str(os_time, time_str);
+		sys_write("sys time is ");
+		sys_write(time_str);
+		sys_write("... ");
+		sys_sleep(1);
+	}
+}

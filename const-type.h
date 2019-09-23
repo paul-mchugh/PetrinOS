@@ -41,7 +41,7 @@ typedef struct
 {
 	state_t state;
 	tf_t *tf_p;
-	unsigned int time_count, total_time;
+	unsigned int wake_time, time_count, total_time;
 } pcb_t;
 
 typedef struct

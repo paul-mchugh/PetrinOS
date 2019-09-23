@@ -3,6 +3,9 @@
 #ifndef _PROC_
 #define _PROC_
 
+#include "syscall.h"
+
 void Idle(void);
+void Init(void);
 
 #endif
