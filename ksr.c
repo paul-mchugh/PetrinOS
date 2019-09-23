@@ -27,7 +27,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 
 	//create trapframe for process 'pid:'
 	//1st position trapframe pointer in its PCB to the end of the stack
-	pcb[pid].tf_p = (tf_t *)(DRAM_START + STACK_MAX - sizeof(tf_t));
+	pcb[pid].tf_p = (tf_t *)(DRAM_START + (STACK_MAX*(pid+1)) - sizeof(tf_t));
 	pcb[pid].tf_p -> efl = EF_DEFAULT_VALUE|EF_INTR;	// handle intr
 	pcb[pid].tf_p -> cs = get_cs();						// duplicate from CPU
 	pcb[pid].tf_p -> eip = DRAM_START;					// where code copied
@@ -45,12 +45,14 @@ void TimerSR(void)
 	pcb[run_pid].time_count++;		//increment process contiguous run time
 	pcb[run_pid].total_time++;		//increment process total run time
 
-	for (i = 0; i < PROC_MAX; i++) { //TODO: Fix awake from sleep
-		if (pcb[i].state == RUN) {
-			if (sys_time_count == pcb[i].total_time) {
-				pcb[i].state = READY;
-				EnQue(i, &ready_que);
-			}
+	//iterate over the processes and if they are asleep and have passed
+	//the wake time then wake them up
+	for (i = 0; i < PROC_MAX; i++)
+	{
+		if (pcb[i].state==SLEEP && sys_time_count>=pcb[i].wake_time)
+		{
+			pcb[i].state = READY;
+			EnQue(i, &ready_que);
 		}
 	}
 
@@ -64,8 +66,10 @@ void TimerSR(void)
 	}
 }
 
-void SyscallSR(void) {
-	switch (pcb[run_pid].tf_p->eax) {
+void SyscallSR(void)
+{
+	switch (pcb[run_pid].tf_p->eax)
+	{
 		case SYS_GET_PID:
 			pcb[run_pid].tf_p->ebx = run_pid;
 			break;
@@ -83,14 +87,16 @@ void SyscallSR(void) {
 	}
 }
 
-void SysSleep(void) {
+void SysSleep(void)
+{
 	int sleep_sec = pcb[run_pid].tf_p->ebx;
 	pcb[run_pid].wake_time = sys_time_count + sleep_sec * 100;
 	pcb[run_pid].state = SLEEP;
 	run_pid = NONE;
 }
 
-void SysWrite(void) {
+void SysWrite(void)
+{
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
 	while (*str == '\0')
 	{

@@ -88,7 +88,8 @@ void MemCpy(char* dst, char* src, unsigned int max)
 	}
 }
 
-void Number2Str(int x, char *str) {
+void Number2Str(int x, char *str) //TODO: fix
+{
 	char c;
 	int tmp;
 	int i, k;

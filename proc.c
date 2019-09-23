@@ -32,7 +32,7 @@ void Idle(void)
 		{
 			if(flag == 0)
 			{
-				*vga = VGA_MASK_VAL | '.';
+				*vga = VGA_MASK_VAL | '*';
 				flag = 1;
 			}
 			else

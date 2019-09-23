@@ -30,8 +30,9 @@ void BootStrap(void)	// set up kernel!
 
 	//setup IDT/get IDT location
 	idt = get_idt_base();
-	//addr of TimerEntry is placed into proper IDT entry
+	//setup IDT events
 	fill_gate(&idt[TIMER_EVENT], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
+	fill_gate(&idt[SYSCALL_EVENT], (int)SyscallEntry, get_cs(), ACC_INTR_GATE, 0);
 	//send PIC control register the mask value for timer handling
 	outportb(PIC_MASK_REG, PIC_MASK_VAL);
 }
@@ -72,8 +73,18 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	//copy tf_p to the trapframe ptr (in PCB) of the process in run
 	pcb[run_pid].tf_p = tf_p;
 
-	//call the timer service routine
-	TimerSR();
+	//handle the interrupt by invoking hte appropriate event
+	switch(pcb[run_pid].tf_p)
+	{
+	case TIMER_EVENT:
+		TimerSR();
+		break;
+	case SYSCALL_EVENT:
+		SyscallSR();
+		break;
+	default:
+		KPANIC_UCOND("Kernel Panic: no such event!\n");
+	}
 
 	// 'b' key on target PC is pressed, goto the GDB prompt
 	if(cons_kbhit()&&cons_getchar()=='b') breakpoint();

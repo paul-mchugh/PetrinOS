@@ -8,7 +8,6 @@
 #define PIC_MASK_VAL ~0x01		// mask code for PIC
 #define PIC_CONT_REG 0x20		// I/O loc # of PIc control
 #define TIMER_SERVED_VAL 0x60	// control code sent to PIC
-#define VGA_MASK_VAL 0x0f00		// bold face, white on black
 
 #define TIME_MAX 310			// max timer count, then rotate process
 #define PROC_MAX 20				// max number of processes
