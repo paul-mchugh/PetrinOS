@@ -119,6 +119,7 @@ void Number2Str(int n, char *res)
 		digit = n/i;
 		if(digit==0) continue; //don't advance if this digit is empty
 		*res=digit+'0';
+		n%=i;
 		++res;
 	}
 

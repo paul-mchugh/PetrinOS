@@ -30,7 +30,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	pcb[pid].tf_p = (tf_t *)(DRAM_START + (STACK_MAX*(pid+1)) - sizeof(tf_t));
 	pcb[pid].tf_p -> efl = EF_DEFAULT_VALUE|EF_INTR;	// handle intr
 	pcb[pid].tf_p -> cs = get_cs();						// duplicate from CPU
-	pcb[pid].tf_p -> eip = DRAM_START;					// where code copied
+	pcb[pid].tf_p -> eip = DRAM_START + STACK_MAX*pid;	// where code copied
 
 }
 
@@ -98,7 +98,7 @@ void SysSleep(void)
 void SysWrite(void)
 {
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
-	while (*str == '\0')
+	while (*str != '\0')
 	{
 		*sys_cursor = VGA_MASK_VAL | *str;
 		//increment the cursor and string position
