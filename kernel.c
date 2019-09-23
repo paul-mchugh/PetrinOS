@@ -11,7 +11,7 @@
 
 // declare kernel data
 int run_pid;					// current running PID
-short *sys_cursor;				// pointer to the current place pointed to by the cursor
+unsigned short *sys_cursor;		// pointer to the current place pointed to by the cursor
 que_t avail_que, ready_que;		// avail PID and those created/ready to run
 pcb_t pcb[PROC_MAX];			// Process Control Blocks
 unsigned int sys_time_count;	// total time system has been up

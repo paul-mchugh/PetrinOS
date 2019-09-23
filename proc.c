@@ -5,6 +5,7 @@
 #include "ext-data.h"
 #include "proc.h"
 #include "syscall.h"
+#include "tools.h"
 
 /*
 Code an Idle() function that doesn't have any input or return, but just
