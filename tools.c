@@ -93,6 +93,7 @@ void MemCpy(char* dst, char* src, unsigned int max)
 void Number2Str(int n, char *res)
 {
 	int i;
+	int leadNZ = 0;
 	char digit;
 	char minValStr[] = "-2147483648";
 	//if n is the minimum 32-bit int value we can not multiply by -1, so this is a special case
@@ -117,7 +118,8 @@ void Number2Str(int n, char *res)
 	for(i = 1000000000;i>0;i/=10)
 	{
 		digit = n/i;
-		if(digit==0) continue; //don't advance if this digit is empty
+		if(digit==0 && !leadNZ) continue; //don't advance if this digit is empty
+		leadNZ = 1;
 		*res=digit+'0';
 		n%=i;
 		++res;
