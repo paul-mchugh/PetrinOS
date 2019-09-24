@@ -25,7 +25,7 @@ int DeQue(que_t* que)
 {
 	int bak;
 
-	if(que->tail==-1) return -1;
+	if(que->tail==0) return -1;
 	bak = que->que[0];
 	que->tail--;
 	MemCpy((char*)&que->que[0], (char*)&que->que[1], (QUE_MAX-1)*sizeof(int));
