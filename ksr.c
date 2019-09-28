@@ -124,11 +124,34 @@ void SysSetCursor(void) {
 
 void SysFork(void) {
 	int pid;
+	int offset; // from child to parent
 
 	KPANIC(QueEmpty(&avail_que), "Panic: out of PID!\n");
 	pid = DeQue(&avail_que);
 	EnQue(pid, &ready_que);
+
+	// pcb copied and updated with new values
 	MemCpy((char *)&pcb[pid],(char *)&pcb[run_pid], sizeof(pcb_t));
-	pcb[pid] = READY;
-	// to be continued, it's late.
+	pcb[pid].state = READY;
+	pcb[pid].wake_time = 0; 
+	pcb[pid].time_count = 0;
+	pcb[pid].total_time = 0;
+	pcb[pid].ppid = run_pid;
+
+	// copying parent's memory to child.
+	MemCpy((char *)(pid * STACK_MAX + DRAM_START), (char *)(run_pid * STACK_MAX + DRAM_START), STACK_MAX);
+	
+	// calculate the byte distance between child and parent.
+	offset = (pid - run_pid) * STACK_MAX;
+
+	// though trapframe has been copied over, it's still pointing to parent, this fixes that
+	pcb[pid].tf_p += offset; // OS design is elegant
+	// updating child trapframe
+	pcb[pid].tf_p -> eip += offset;
+	pcb[pid].tf_p -> ebp += offset;
+	(int *)(pcb[pid].tf_p -> ebp) += offset; // updates the address that ebp has, in the "register" offsetting that, not ebp
+	
+	// setting the return values for sys_fork()
+	pcb[run_pid].tf_p -> ebx = pid;
+	pcb[pid].tf_p -> ebx = 0;	// how else will the child know it's the child?
 }
