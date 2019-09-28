@@ -24,6 +24,8 @@
 #define SYS_GET_TIME 130
 #define SYS_SLEEP 131
 #define SYS_WRITE 132
+#define SYS_FORK 133
+#define SYS_SET_CURSOR 134
 #define VIDEO_START ((unsigned short *)0xb8000)
 #define VIDEO_END ((unsigned short *)0xb8000 + 25 * 80)
 
@@ -40,7 +42,8 @@ typedef struct
 {
 	state_t state;
 	tf_t *tf_p;
-	unsigned int wake_time, time_count, total_time;
+	unsigned int wake_time, time_count, total_time;	// pertaining to time.
+	unsigned int ppid;
 } pcb_t;
 
 typedef struct

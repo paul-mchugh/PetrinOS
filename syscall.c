@@ -55,3 +55,23 @@ void sys_write(char * str)		// similar to sys_sleep
 		: "eax", "ebx"
 	);
 }
+
+void sys_set_cursor(int row, int col) {
+	asm("movl %0, %%eax;
+		movl %1, %%ebx;
+		mov1 %2, %%ecx;
+		int $128"
+		:
+		: "g" (SYS_SET_CURSOR), "g" (row), "g" (col)
+		: "eax", "ebx", "ecx"
+	   );
+}
+
+void sys_fork(void) {
+	asm("movl %0, %%eax;
+		int $128"
+		:
+		: "g" (SYS_FORK)
+		: "eax"
+	   );
+}

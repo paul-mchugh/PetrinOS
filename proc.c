@@ -46,22 +46,29 @@ void Idle(void)
 }
 
 void Init(void) {
-	int my_pid, os_time;
+	int my_pid, os_time, forked_pid;
 	char pid_str[20];
 	char time_str[20];
+
+	forked_pid = sys_fork();
+	if(forked_pid == NONE) sys_write("sys_fork() failed!\n");
+	forked_pid = sys_fork();
+	if(forked_pid == NONE) sys_write("sys_fork() failed!\n");
 
 	my_pid = sys_get_pid();
 	Number2Str(my_pid, pid_str);
 	while (1) {
+		sys_sleep(1);
+		sys_set_cursor(my_pid, 0);
 		sys_write("my PID is ");
 		sys_write(pid_str);
 		sys_write("... ");
-		sys_sleep(1);
 		os_time = sys_get_time();
 		Number2Str(os_time, time_str);
+		sys_sleep(1);
+		sys_set_cursor(my_pid, 0);
 		sys_write("sys time is ");
 		sys_write(time_str);
 		sys_write("... ");
-		sys_sleep(1);
 	}
 }
