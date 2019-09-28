@@ -82,6 +82,12 @@ void SyscallSR(void)
 		case SYS_WRITE:
 			SysWrite();
 			break;
+		case SYS_SET_CURSOR:
+			SysSetCursor();
+			break;
+		case SYS_FORK:
+			SysFork();
+			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
 	}
@@ -109,4 +115,20 @@ void SysWrite(void)
 			sys_cursor = VIDEO_START;
 		}
 	}
+}
+
+void SysSetCursor(void) {
+	// check later to make sure the screen is width 80, i think it is but i don't remember.
+	sys_cursor = VIDEO_START + (80 * pcb[run_pid].tf_p->ebx) + pcb[run_pid].tf_p->ecx;
+}
+
+void SysFork(void) {
+	int pid;
+
+	KPANIC(QueEmpty(&avail_que), "Panic: out of PID!\n");
+	pid = DeQue(&avail_que);
+	EnQue(pid, &ready_que);
+	MemCpy((char *)&pcb[pid],(char *)&pcb[run_pid], sizeof(pcb_t));
+	pcb[pid] = READY;
+	// to be continued, it's late.
 }
