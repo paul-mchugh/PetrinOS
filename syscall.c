@@ -56,22 +56,27 @@ void sys_write(char * str)		// similar to sys_sleep
 	);
 }
 
-void sys_set_cursor(int row, int col) {
+void sys_set_cursor(int row, int col)
+{
 	asm("movl %0, %%eax;
 		movl %1, %%ebx;
-		mov1 %2, %%ecx;
+		movl %2, %%ecx;
 		int $128"
 		:
 		: "g" (SYS_SET_CURSOR), "g" (row), "g" (col)
 		: "eax", "ebx", "ecx"
-	   );
+	);
 }
 
-void sys_fork(void) {
-	asm("movl %0, %%eax;
-		int $128"
-		:
+int sys_fork(void)
+{
+	int pid;
+	asm("movl %1, %%eax;
+		int $128;
+		movl %%ebx, %0"
+		: "=g" (pid)
 		: "g" (SYS_FORK)
-		: "eax"
-	   );
+		: "eax", "ebx"
+	);
+	return pid;
 }
