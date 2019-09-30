@@ -134,6 +134,7 @@ void SysFork(void)
 
 	// pcb copied and updated with new values
 	MemCpy((char *)&pcb[pid],(char *)&pcb[run_pid], sizeof(pcb_t));
+	pcb[pid].state = READY;
 	pcb[pid].wake_time = 0;
 	pcb[pid].time_count = 0;
 	pcb[pid].ppid = run_pid;
