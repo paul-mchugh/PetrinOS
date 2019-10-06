@@ -81,7 +81,8 @@ int sys_fork(void)
 	return pid;
 }
 
-unsigned int sys_get_rand(void) {
+unsigned int sys_get_rand(void)
+{
 	unsigned int rand;
 	asm("movl %1, %%eax;
 		int $128;
@@ -93,7 +94,8 @@ unsigned int sys_get_rand(void) {
 	return rand;
 }
 
-void sys_lock_mutex(int mutex_id) {
+void sys_lock_mutex(int mutex_id)
+{
 	asm("movl %0, %%eax;
 		movl %1, %%ebx;
 		int $128"
@@ -103,7 +105,8 @@ void sys_lock_mutex(int mutex_id) {
 	);
 }
 
-void sys_unlock_mutex(int mutex_id) {
+void sys_unlock_mutex(int mutex_id)
+{
 		asm("movl %0, %%eax;
 		movl %1, %%ebx;
 		int $128"

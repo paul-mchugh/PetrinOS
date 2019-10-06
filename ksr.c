@@ -100,7 +100,8 @@ void SyscallSR(void)
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
 	}
-	if (run_pid != NONE) {
+	if (run_pid != NONE)
+	{
 		pcb[run_pid].state = READY;
 		EnQue(run_pid, &ready_que);
 		run_pid = NONE;
@@ -171,37 +172,51 @@ void SysFork(void)
 	pcb[pid].tf_p -> ebx = 0;	// how else will the child know it's the child?
 }
 
-void SysLockMutex(void) {
+void SysLockMutex(void)
+{
 	int mutex_id;
 
 	mutex_id = pcb[run_pid].tf_p -> ebx;
 
-	if (mutex_id == VIDEO_MUTEX) {	 
-		if (video_mutex.lock == UNLOCKED) {
+	if (mutex_id == VIDEO_MUTEX)
+	{
+		if (video_mutex.lock == UNLOCKED)
+		{
 			video_mutex.lock = LOCKED;
-		} else {
+		}
+		else
+		{
 			EnQue(run_pid, &video_mutex.suspend_que);
 			run_pid = NONE;
 		}
-	} else {
+	}
+	else
+	{
 		KPANIC_UCOND("Panic: no such mutex ID!\n");
 	}
 }
 
-void SysUnlockMutex(void) {
+void SysUnlockMutex(void)
+{
 	int mutex_id, released_pid;
 
 	mutex_id = pcb[run_pid].tf_p -> ebx;
 
-	if (mutex_id == VIDEO_MUTEX) {
-		if (!QueEmpty(&video_mutex.suspend_que)) {
+	if (mutex_id == VIDEO_MUTEX)
+	{
+		if (!QueEmpty(&video_mutex.suspend_que))
+		{
 			released_pid = DeQue(&video_mutex.suspend_que);
 			pcb[released_pid].state = READY;
 			EnQue(released_pid, &ready_que);
-		} else {
+		}
+		else
+		{
 			video_mutex.lock = UNLOCKED;
 		}
-	} else {
+	}
+	else
+	{
 		KPANIC_UCOND("Panic: no such mutex ID!\n");
 	}
 }

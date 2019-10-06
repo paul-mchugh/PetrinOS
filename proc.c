@@ -46,7 +46,8 @@ void Idle(void)
 	}
 }
 
-void Init(void) {
+void Init(void)
+{
 	int col, my_pid, forked_pid, rand;
 	char pid_str[20];
 	char blank = ' ';
@@ -58,8 +59,10 @@ void Init(void) {
 
 	my_pid = sys_get_pid();
 	Number2Str(my_pid, pid_str);
-	while (1) {
-		for (col = 0; col < 70; col++) {
+	while (1)
+	{
+		for (col = 0; col < 70; col++)
+		{
 			sys_lock_mutex(VIDEO_MUTEX);
 			sys_set_cursor(my_pid, col);
 			sys_write(pid_str);
@@ -68,7 +71,8 @@ void Init(void) {
 			sys_sleep(rand);
 		}
 		sys_lock_mutex(VIDEO_MUTEX);
-		for (col = 0; col < 70; col++) {
+		for (col = 0; col < 70; col++)
+		{
 			sys_set_cursor(my_pid, col);
 			sys_write(&blank);
 		}
