@@ -26,12 +26,20 @@
 #define SYS_WRITE 132
 #define SYS_FORK 133
 #define SYS_SET_CURSOR 134
+#define SYS_GET_RAND 135
+#define SYS_LOCK_MUTEX 136
+#define SYS_UNLOCK_MUTEX 137
 #define VIDEO_START ((unsigned short *)0xb8000)
 #define VIDEO_END ((unsigned short *)0xb8000 + 25 * 80)
 
+#define VIDEO_MUTEX 0
+
+#define LOCKED 1
+#define UNLOCKED 0
+
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
-typedef enum {AVAIL, READY, RUN, SLEEP} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP, SUSPEND} state_t;
 
 typedef struct
 {
@@ -51,6 +59,12 @@ typedef struct
 	int que[QUE_MAX];
 	int tail;
 } que_t;
+
+typedef struct
+{
+	int lock;
+	que_t suspend_que;
+} mutex_t;
 
 #endif							// to prevent name mangling
 

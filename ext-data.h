@@ -16,5 +16,7 @@ extern que_t ready_que;				// those created/ready to run
 extern pcb_t pcb[PROC_MAX];			// Process Control Blocks
 extern unsigned int sys_time_count;	// total time the system has been up
 extern struct i386_gate *idt;		// interrupt descriptor table
+extern unsigned int sys_rand_count;
+extern mutex_t video_mutex;
 
 #endif

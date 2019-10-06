@@ -80,3 +80,35 @@ int sys_fork(void)
 	);
 	return pid;
 }
+
+unsigned int sys_get_rand(void) {
+	unsigned int rand;
+	asm("movl %1, %%eax;
+		int $128;
+		movl %%ebx, %0"
+		: "=g" (rand)
+		: "g" (SYS_GET_RAND)
+		: "eax", "ebx"
+	);
+	return rand;
+}
+
+void sys_lock_mutex(int mutex_id) {
+	asm("movl %0, %%eax;
+		movl %1, %%ebx;
+		int $128"
+		:
+		: "g" (SYS_LOCK_MUTEX), "g" (mutex_id)
+		: "eax", "ebx"
+	);
+}
+
+void sys_unlock_mutex(int mutex_id) {
+		asm("movl %0, %%eax;
+		movl %1, %%ebx;
+		int $128"
+		:
+		: "g" (SYS_UNLOCK_MUTEX), "g" (mutex_id)
+		: "eax", "ebx"
+	);
+}

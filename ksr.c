@@ -88,15 +88,29 @@ void SyscallSR(void)
 		case SYS_FORK:
 			SysFork();
 			break;
+		case SYS_GET_RAND:
+			pcb[run_pid].tf_p->ebx = sys_rand_count;
+			break;
+		case SYS_LOCK_MUTEX:
+			SysLockMutex();
+			break;
+		case SYS_UNLOCK_MUTEX:
+			SysUnlockMutex();
+			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
+	}
+	if (run_pid != NONE) {
+		pcb[run_pid].state = READY;
+		EnQue(run_pid, &ready_que);
+		run_pid = NONE;
 	}
 }
 
 void SysSleep(void)
 {
 	int sleep_sec = pcb[run_pid].tf_p->ebx;
-	pcb[run_pid].wake_time = sys_time_count + sleep_sec * 100;
+	pcb[run_pid].wake_time = sys_time_count + sleep_sec * 10;
 	pcb[run_pid].state = SLEEP;
 	run_pid = NONE;
 }
@@ -155,4 +169,39 @@ void SysFork(void)
 	// setting the return values for sys_fork()
 	pcb[run_pid].tf_p -> ebx = pid;
 	pcb[pid].tf_p -> ebx = 0;	// how else will the child know it's the child?
+}
+
+void SysLockMutex(void) {
+	int mutex_id;
+
+	mutex_id = pcb[run_pid].tf_p -> ebx;
+
+	if (mutex_id == VIDEO_MUTEX) {	 
+		if (video_mutex.lock == UNLOCKED) {
+			video_mutex.lock = LOCKED;
+		} else {
+			EnQue(run_pid, &video_mutex.suspend_que);
+			run_pid = NONE;
+		}
+	} else {
+		KPANIC_UCOND("Panic: no such mutex ID!\n");
+	}
+}
+
+void SysUnlockMutex(void) {
+	int mutex_id, released_pid;
+
+	mutex_id = pcb[run_pid].tf_p -> ebx;
+
+	if (mutex_id == VIDEO_MUTEX) {
+		if (!QueEmpty(&video_mutex.suspend_que)) {
+			released_pid = DeQue(&video_mutex.suspend_que);
+			pcb[released_pid].state = READY;
+			EnQue(released_pid, &ready_que);
+		} else {
+			video_mutex.lock = UNLOCKED;
+		}
+	} else {
+		KPANIC_UCOND("Panic: no such mutex ID!\n");
+	}
 }

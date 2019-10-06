@@ -15,16 +15,20 @@ unsigned short *sys_cursor;		// pointer to the current place pointed to by the c
 que_t avail_que, ready_que;		// avail PID and those created/ready to run
 pcb_t pcb[PROC_MAX];			// Process Control Blocks
 unsigned int sys_time_count;	// total time system has been up
+unsigned int sys_rand_count;
 struct i386_gate *idt;			// interrupt descriptor table
+mutex_t video_mutex;
 
 void BootStrap(void)	// set up kernel!
 {
 	int i;
 	sys_time_count=0;
 	sys_cursor = VIDEO_START;
+	sys_rand_count = 0;
 
 	Bzero((char *)&avail_que, sizeof(que_t));
 	Bzero((char *)&ready_que, sizeof(que_t));
+	Bzero((char *)&video_mutex, sizeof(mutex_t));
 	//enqueue all the available PID numbers to avail queue(none yet)
 	for(i=0;i<PROC_MAX;i++) EnQue(i,&avail_que);
 

@@ -29,6 +29,7 @@ void Idle(void)
 	unsigned short* vga = VIDEO_START;
 	while(1)
 	{
+		sys_rand_count++;
 		if(sys_time_count % 100 == 0)
 		{
 			if(flag == 0)
@@ -46,9 +47,9 @@ void Idle(void)
 }
 
 void Init(void) {
-	int my_pid, os_time, forked_pid;
+	int col, my_pid, forked_pid, rand;
 	char pid_str[20];
-	char time_str[20];
+	char blank = ' ';
 
 	forked_pid = sys_fork();
 	if(forked_pid == NONE) sys_write("sys_fork() failed!\n");
@@ -58,17 +59,20 @@ void Init(void) {
 	my_pid = sys_get_pid();
 	Number2Str(my_pid, pid_str);
 	while (1) {
-		sys_sleep(1);
-		sys_set_cursor(my_pid, 0);
-		sys_write("my PID is ");
-		sys_write(pid_str);
-		sys_write("... ");
-		os_time = sys_get_time();
-		Number2Str(os_time, time_str);
-		sys_sleep(1);
-		sys_set_cursor(my_pid, 0);
-		sys_write("sys time is ");
-		sys_write(time_str);
-		sys_write("... ");
+		for (col = 0; col < 70; col++) {
+			sys_lock_mutex(VIDEO_MUTEX);
+			sys_set_cursor(my_pid, col);
+			sys_write(pid_str);
+			sys_unlock_mutex(VIDEO_MUTEX);
+			rand = (sys_get_rand() % 4) + 1;
+			sys_sleep(rand);
+		}
+		sys_lock_mutex(VIDEO_MUTEX);
+		for (col = 0; col < 70; col++) {
+			sys_set_cursor(my_pid, col);
+			sys_write(&blank);
+		}
+		sys_unlock_mutex(VIDEO_MUTEX);
+		sys_sleep(30);
 	}
 }
