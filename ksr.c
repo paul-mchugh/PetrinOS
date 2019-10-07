@@ -186,6 +186,7 @@ void SysLockMutex(void)
 		else
 		{
 			EnQue(run_pid, &video_mutex.suspend_que);
+			pcb[run_pid].state = SUSPEND;
 			run_pid = NONE;
 		}
 	}
