@@ -50,7 +50,7 @@ void Init(void)
 {
 	int col, my_pid, forked_pid, rand;
 	char pid_str[20];
-	char blank = ' ';
+	char blank[] = " ";
 
 	forked_pid = sys_fork();
 	if(forked_pid == NONE) sys_write("sys_fork() failed!\n");
@@ -74,7 +74,7 @@ void Init(void)
 		for (col = 0; col < 70; col++)
 		{
 			sys_set_cursor(my_pid, col);
-			sys_write(&blank);
+			sys_write(blank);
 		}
 		sys_unlock_mutex(VIDEO_MUTEX);
 		sys_sleep(30);

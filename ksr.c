@@ -61,7 +61,6 @@ void TimerSR(void)
 	{
 		EnQue(run_pid, &ready_que);
 		pcb[run_pid].state = READY;
-		pcb[run_pid].time_count = 0;
 		run_pid = NONE;
 	}
 }
