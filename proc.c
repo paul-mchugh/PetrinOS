@@ -48,7 +48,8 @@ void Idle(void)
 
 void Init(void)
 {
-	int col, my_pid, forked_pid, rand;
+	int col, my_pid, forked_pid;
+	unsigned int rand;
 	char pid_str[20];
 	char blank[] = " ";
 
