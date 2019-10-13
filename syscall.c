@@ -107,11 +107,36 @@ void sys_lock_mutex(int mutex_id)
 
 void sys_unlock_mutex(int mutex_id)
 {
-		asm("movl %0, %%eax;
+	asm("movl %0, %%eax;
 		movl %1, %%ebx;
 		int $128"
 		:
 		: "g" (SYS_UNLOCK_MUTEX), "g" (mutex_id)
 		: "eax", "ebx"
 	);
+}
+
+void sys_exit(int exit_code)
+{
+	asm("movl %0, %%eax;
+		movl %1, %%ebx;
+		int $128;"
+		:
+		: "g" (SYS_EXIT), "g" (exit_code)
+		: "eax", "ebx"
+	);
+}
+
+int sys_wait(int *exit_code)
+{
+	int result;
+	asm("movl %1, %%eax;
+		movl %2, %%ebx;
+		int $128;
+		movl %%ebx, %0"
+		: "=g" (result)
+		: "g" (SYS_WAIT), "g" (exit_code)
+		: "eax", "ebx"
+	);
+	return result;
 }

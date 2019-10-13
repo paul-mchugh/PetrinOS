@@ -29,6 +29,8 @@
 #define SYS_GET_RAND 135
 #define SYS_LOCK_MUTEX 136
 #define SYS_UNLOCK_MUTEX 137
+#define SYS_EXIT 138
+#define SYS_WAIT 139
 #define VIDEO_START ((unsigned short *)0xb8000)
 #define VIDEO_END ((unsigned short *)0xb8000 + 25 * 80)
 
@@ -39,7 +41,7 @@
 
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
-typedef enum {AVAIL, READY, RUN, SLEEP, SUSPEND} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP, SUSPEND, WAIT, ZOMBIE} state_t;
 
 typedef struct
 {

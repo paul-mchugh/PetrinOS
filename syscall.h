@@ -10,5 +10,7 @@ int sys_fork(void);
 unsigned int sys_get_rand(void);
 void sys_lock_mutex(int mutex_id);
 void sys_unlock_mutex(int mutex_id);
+void sys_exit(int exit_code)
+int sys_wait(int *exit_code)
 
 #endif

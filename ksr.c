@@ -96,6 +96,12 @@ void SyscallSR(void)
 		case SYS_UNLOCK_MUTEX:
 			SysUnlockMutex();
 			break;
+		case SYS_EXIT:
+			SysExit();
+			break;
+		case SYS_WAIT:
+			SysWait();
+			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
 	}
@@ -142,7 +148,11 @@ void SysFork(void)
 	int pid;
 	int offset; // from child to parent
 
-	KPANIC(QueEmpty(&avail_que), "Panic: out of PID!\n");
+	if(QueEmpty(&avail_que))
+	{
+		pcb[run_pid].tf_p->ebx = NONE;
+		return;
+	}
 	pid = DeQue(&avail_que);
 	EnQue(pid, &ready_que);
 
@@ -218,5 +228,58 @@ void SysUnlockMutex(void)
 	else
 	{
 		KPANIC_UCOND("Panic: no such mutex ID!\n");
+	}
+}
+
+void SysExit(void)
+{
+	int ppid = pcb[run_pid].ppid;
+	int ec = pcb[run_pid].tf_p->ebx;
+	if(pcb[ppid].state == WAIT)
+	{
+		//parent was waiting on us we need to wake it up and set its wait returns
+		pcb[ppid].state = READY;
+		EnQue(ppid, &ready_que);
+		*((int*)pcb[ppid].tf_p->ebx) = ec;
+		pcb[ppid].tf_p->ebx = run_pid; //exiting program
+		//cleanup self
+		pcb[run_pid].state = AVAIL;
+		EnQue(run_pid, &avail_que);
+	}
+	else
+	{
+		//zombify self and wait for the parent
+		pcb[run_pid].state = ZOMBIE;
+	}
+	run_pid = NONE;
+}
+
+void SysWait(void)
+{
+	int i = 0;
+	int zpid = NONE;
+	//look through the pcb for our zombie children
+	for(i=0;i<PROC_MAX;i++)
+	{
+		if(pcb[i].state==ZOMBIE && pcb[i].ppid==run_pid)
+		{
+			zpid = i;
+		}
+	}
+
+	if(zpid!=NONE)
+	{
+		//set the return registers
+		*((int*)pcb[run_pid].tf_p->ebx) = pcb[zpid].tf_p->ebx; //exit code
+		pcb[run_pid].tf_p->ebx = zpid; //exiting program
+		//cleanup child
+		pcb[zpid].state = AVAIL;
+		EnQue(zpid, &avail_que);
+	}
+	else
+	{
+		//we need to wait for a child to terminate
+		pcb[run_pid].state = WAIT;
+		run_pid = NONE;
 	}
 }
