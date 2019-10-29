@@ -103,10 +103,10 @@ void SyscallSR(void)
 			SysWait();
 			break;
 		case SYS_SIGNAL:
-			//SysSignal()
+			SysSignal()
 			break;
 		case SYS_KILL:
-			//SysKill()
+			SysKill()
 			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
@@ -122,11 +122,10 @@ void SyscallSR(void)
 void AlterStack(int pid, func_p_t p)
 {
 	int* retEIP = &pcb[run_pid].tf_p->efl;	//store pointer to place where return ptr goes
-	tf_t tmpTf = *pcb[run_pid].tf_p;		//copy original trapframe
 
 	//lower the trapframe by 4 bytes
+	MemCpy(((char*)pcb[run_pid].t_p)-4, pcb[run_pid].t_p, sizeof(tf_t));
 	pcb[run_pid].tf_p = (tf_t*)(((char*)pcb[run_pid].tf_p)-4);
-	*pcb[run_pid].tf_p = tmpTf;
 
 	//insert original EIP in gap & set eip to handler function
 	*retEIP = pcb[run_pid].tf_p->eip;
@@ -271,6 +270,8 @@ void SysExit(void)
 	{
 		//zombify self and wait for the parent
 		pcb[run_pid].state = ZOMBIE;
+		if (pcb[ppid].signal_handler[run_pid] != 0) 
+			AlterStack(ppid, pcb[ppid].signal_handler[run_pid]);
 	}
 	run_pid = NONE;
 }
@@ -318,11 +319,11 @@ void SysKill(void)
 	int sigNo = pcb[run_pid].tf_p->ecx;
 	int i;
 
-	if(tPid==0&&sigNo==SIGCONT)
+	if(tPid == 0 && sigNo == SIGCONT)
 	{
-		for(i=0;i<MAX_PID;i++)
+		for(i = 0; i < MAX_PID; i++)
 		{
-			if(pcb[i].ppid==run_pid&&pcb[i].state==SLEEP)
+			if(pcb[i].ppid == run_pid && pcb[i].state == SLEEP)
 			{
 				pcb[i].state = READY;
 				EnQue(i, &ready_que);

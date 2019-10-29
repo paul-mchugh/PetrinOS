@@ -1,11 +1,4 @@
-// proc.c, 159
-// processes are coded here
-
-#include "const-type.h"
-#include "ext-data.h"
-#include "proc.h"
-#include "syscall.h"
-#include "tools.h"
+// proc.c, 159 processes are coded here #include "const-type.h" #include "ext-data.h" #include "proc.h" #include "syscall.h" #include "tools.h"
 
 /*
 Code an Idle() function that doesn't have any input or return, but just
@@ -48,56 +41,75 @@ void Idle(void)
 
 void Init(void)
 {
-	char pid_str[20], str[20];
-	int my_pid, forked_pid;
-	int i, col, exit_pid, exit_code;
-	unsigned int sleep_period, total_sleep_period;
+	int i, pid, forked, col, total_sleep_period;
+	char pid_str[20];
 
-	for(i=0;i<5;i++)
-	{
-		forked_pid = sys_fork();
-		if(forked_pid==0)break;
-		if(forked_pid==NONE)
-		{
-			sys_write("sys_fork() failed!\n");
+	sys_signal(SIGCHLD, MyChildExitHandler);
+	for(i = 0; i < 5; i++) {
+		forked = sys_fork();
+		if (forked == 0) 
+			break;	// children don't loop!
+		if (forked == NONE) {
+			sys_write("sys_fork() failed\n");
+			sys_exit(NONE);
 		}
 	}
-
-	my_pid = sys_get_pid();
-	Number2Str(my_pid, pid_str);
-
-	if(forked_pid!=0)
-	{
-		for(i=0;i<5;i++)
-		{
-			exit_pid = sys_wait(&exit_code);
-
+	pid = sys_get_pid();
+	Number2Str(pid, pid_str);
+	if (forked > 0) {
+		sys_sleep(10);
+		sys_kill(0, SIGCONT);
+		while(1) {
 			sys_lock_mutex(VIDEO_MUTEX);
-			sys_set_cursor(my_pid,i*14);
-			sys_write("PID ");
-			Number2Str(exit_pid,str);
-			sys_write(str);
-			sys_write(": ");
-			Number2Str(exit_code,str);
-			sys_write(str);
-			sys_unlock_mutex(VIDEO_MUTEX);
-		}
-		sys_write("  Init exits.");
-		sys_exit(0);
-	}
-	else
-	{
-		total_sleep_period = 0;
-		for (col = 0; col < 70; col++)
-		{
-			sys_lock_mutex(VIDEO_MUTEX);
-			sys_set_cursor(my_pid, col);
+			sys_set_cursor(pid, 0);
 			sys_write(pid_str);
 			sys_unlock_mutex(VIDEO_MUTEX);
-			sleep_period = (sys_get_rand()/my_pid % 4) + 1;
-			sys_sleep(sleep_period);
-			total_sleep_period += sleep_period;
+
+			sys_sleep(10);
+
+			sys_lock_mutex(VIDEO_MUTEX);
+			sys_set_cursor(pid, 0);
+			sys_write("-");
+			sys_unlock_mutex(VIDEO_MUTEX);
+
+			sys_sleep(10);
 		}
-		sys_exit(total_sleep_period);
 	}
+	sys_sleep(1000000);
+	total_sleep_period = 0;
+	col = 0;
+	for (col = 0; col < 70; col++)
+	{
+		sys_lock_mutex(VIDEO_MUTEX);
+		sys_set_cursor(pid, col);
+		sys_write(pid_str);
+		sys_unlock_mutex(VIDEO_MUTEX);
+
+		sleep_period = (sys_get_rand()/my_pid % 4) + 1;
+		sys_sleep(sleep_period);
+		total_sleep_period += sleep_period;
+
+		sys_lock_mutex(VIDEO_MUTEX);
+		sys_set_cursor(pid, col);
+		sys_write(".");
+		sys_unlock_mutex(VIDEO_MUTEX);
+	}
+	sys_exit(total_sleep_period);
+}
+
+// putting it here because that makes sense
+void MyChildExitHandler(void) {
+	char ecStr[20], childPidStr[20];
+	int pid, childPid, ec;
+	
+	childPid = sys_wait(&ec);
+	pid = sys_get_pid();
+	Number2Str(childPid, childPidStr);
+	Number2Str(ec, ecStr);
+	sys_lock_mutex(VIDEO_MUTEX);
+	sys_set_cursor(childPid, 72);
+	sys_write(childPidStr);
+	sys_write(":");
+	sys_write(ecStr);
+	sys_unlock_mutex(VIDEO_MUTEX);
 }
