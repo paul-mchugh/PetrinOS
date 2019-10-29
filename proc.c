@@ -1,4 +1,9 @@
-// proc.c, 159 processes are coded here #include "const-type.h" #include "ext-data.h" #include "proc.h" #include "syscall.h" #include "tools.h"
+// proc.c, 159 processes are coded here 
+#include "const-type.h" 
+#include "ext-data.h" 
+#include "proc.h" 
+#include "syscall.h"
+#include "tools.h"
 
 /*
 Code an Idle() function that doesn't have any input or return, but just
@@ -41,7 +46,7 @@ void Idle(void)
 
 void Init(void)
 {
-	int i, pid, forked, col, total_sleep_period;
+	int i, pid, forked, col, total_sleep_period, sleep_period;
 	char pid_str[20];
 
 	sys_signal(SIGCHLD, MyChildExitHandler);
@@ -85,7 +90,7 @@ void Init(void)
 		sys_write(pid_str);
 		sys_unlock_mutex(VIDEO_MUTEX);
 
-		sleep_period = (sys_get_rand()/my_pid % 4) + 1;
+		sleep_period = (sys_get_rand()/pid % 4) + 1;
 		sys_sleep(sleep_period);
 		total_sleep_period += sleep_period;
 

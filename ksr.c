@@ -103,10 +103,10 @@ void SyscallSR(void)
 			SysWait();
 			break;
 		case SYS_SIGNAL:
-			SysSignal()
+			SysSignal();
 			break;
 		case SYS_KILL:
-			SysKill()
+			SysKill();
 			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
@@ -124,12 +124,12 @@ void AlterStack(int pid, func_p_t p)
 	int* retEIP = &pcb[run_pid].tf_p->efl;	//store pointer to place where return ptr goes
 
 	//lower the trapframe by 4 bytes
-	MemCpy(((char*)pcb[run_pid].t_p)-4, pcb[run_pid].t_p, sizeof(tf_t));
+	MemCpy(((char*)pcb[run_pid].tf_p)-4, (char*)pcb[run_pid].tf_p, sizeof(tf_t));
 	pcb[run_pid].tf_p = (tf_t*)(((char*)pcb[run_pid].tf_p)-4);
 
 	//insert original EIP in gap & set eip to handler function
 	*retEIP = pcb[run_pid].tf_p->eip;
-	pcb[run_pid].tf_p->eip = p;
+	pcb[run_pid].tf_p->eip = (int)p;
 }
 
 void SysSleep(void)
@@ -321,7 +321,7 @@ void SysKill(void)
 
 	if(tPid == 0 && sigNo == SIGCONT)
 	{
-		for(i = 0; i < MAX_PID; i++)
+		for(i = 0; i < PROC_MAX; i++)
 		{
 			if(pcb[i].ppid == run_pid && pcb[i].state == SLEEP)
 			{

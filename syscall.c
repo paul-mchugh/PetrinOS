@@ -144,8 +144,8 @@ int sys_wait(int *exit_code)
 void sys_signal(int signal_name, func_p_t p) {
 	asm("movl %1, %%ebx;
 		movl %2, %%ecx;
-		int %0, %%eax;
-		int $128;"
+		movl %0, %%eax;
+		int $128"
 		:
 		: "g" (SYS_SIGNAL), "g" (signal_name), "g" (p)
 		: "eax", "ebx", "ecx"
@@ -156,7 +156,7 @@ void sys_kill(int pid, int signal_name) {
 	asm("movl %0, %%eax;
 		movl %1, %%ebx;
 		movl %2, %%ecx;
-		int $128;"
+		int $128"
 		:
 		: "g" (SYS_KILL), "g" (pid), "g" (signal_name)
 		: "eax", "ebx", "ecx"
