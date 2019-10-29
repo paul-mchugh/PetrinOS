@@ -12,5 +12,7 @@ void sys_lock_mutex(int mutex_id);
 void sys_unlock_mutex(int mutex_id);
 void sys_exit(int exit_code);
 int sys_wait(int *exit_code);
+void sys_signal(int signal_name, func_p_t p);
+void sys_kill(int pid, int signal_name);
 
 #endif
