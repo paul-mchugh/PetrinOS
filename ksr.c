@@ -121,15 +121,15 @@ void SyscallSR(void)
 
 void AlterStack(int pid, func_p_t p)
 {
-	int* retEIP = &pcb[run_pid].tf_p->efl;	//store pointer to place where return ptr goes
+	int* retEIP = &pcb[pid].tf_p->efl;	//store pointer to place where return ptr goes
 
 	//lower the trapframe by 4 bytes
-	MemCpy(((char*)pcb[run_pid].tf_p)-4, (char*)pcb[run_pid].tf_p, sizeof(tf_t));
-	pcb[run_pid].tf_p = (tf_t*)(((char*)pcb[run_pid].tf_p)-4);
+	MemCpy(((char*)pcb[pid].tf_p)-4, (char*)pcb[pid].tf_p, sizeof(tf_t));
+	pcb[pid].tf_p = (tf_t*)(((char*)pcb[pid].tf_p)-4);
 
 	//insert original EIP in gap & set eip to handler function
-	*retEIP = pcb[run_pid].tf_p->eip;
-	pcb[run_pid].tf_p->eip = (int)p;
+	*retEIP = pcb[pid].tf_p->eip;
+	pcb[pid].tf_p->eip = (int)p;
 }
 
 void SysSleep(void)
