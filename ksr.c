@@ -175,6 +175,7 @@ void SysFork(void)
 	pcb[pid].tf_p -> eip += offset;
 	pcb[pid].tf_p -> ebp += offset;
 	*((int*)pcb[pid].tf_p -> ebp) += offset;
+	*(((int*)pcb[pid].tf_p -> ebp)+1) += offset;
 
 	// setting the return values for sys_fork()
 	pcb[run_pid].tf_p -> ebx = pid;
