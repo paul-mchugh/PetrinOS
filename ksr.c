@@ -102,6 +102,12 @@ void SyscallSR(void)
 		case SYS_WAIT:
 			SysWait();
 			break;
+		case SYS_SIGNAL:
+			//SysSignal()
+			break;
+		case SYS_KILL:
+			//SysKill()
+			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
 	}
@@ -111,6 +117,20 @@ void SyscallSR(void)
 		EnQue(run_pid, &ready_que);
 		run_pid = NONE;
 	}
+}
+
+void AlterStack(int pid, func_p_t p)
+{
+	int* retEIP = &pcb[run_pid].tf_p->efl;	//store pointer to place where return ptr goes
+	tf_t tmpTf = *pcb[run_pid].tf_p;		//copy original trapframe
+
+	//lower the trapframe by 4 bytes
+	pcb[run_pid].tf_p = (tf_t*)(((char*)pcb[run_pid].tf_p)-4);
+	*pcb[run_pid].tf_p = tmpTf;
+
+	//insert original EIP in gap & set eip to handler function
+	*retEIP = pcb[run_pid].tf_p->eip;
+	pcb[run_pid].tf_p->eip = p;
 }
 
 void SysSleep(void)
@@ -282,5 +302,31 @@ void SysWait(void)
 		//we need to wait for a child to terminate
 		pcb[run_pid].state = WAIT;
 		run_pid = NONE;
+	}
+}
+
+void SysSignal(void)
+{
+	int sigNo = pcb[run_pid].tf_p->ebx;
+	func_p_t svcPtr = (func_p_t)pcb[run_pid].tf_p->ecx;
+	pcb[run_pid].signal_handler[sigNo] = svcPtr;
+}
+
+void SysKill(void)
+{
+	int tPid = pcb[run_pid].tf_p->ebx;
+	int sigNo = pcb[run_pid].tf_p->ecx;
+	int i;
+
+	if(tPid==0&&sigNo==SIGCONT)
+	{
+		for(i=0;i<MAX_PID;i++)
+		{
+			if(pcb[i].ppid==run_pid&&pcb[i].state==SLEEP)
+			{
+				pcb[i].state = READY;
+				EnQue(i, &ready_que);
+			}
+		}
 	}
 }

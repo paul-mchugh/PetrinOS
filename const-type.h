@@ -33,6 +33,11 @@
 #define SYS_WAIT 139
 #define VIDEO_START ((unsigned short *)0xb8000)
 #define VIDEO_END ((unsigned short *)0xb8000 + 25 * 80)
+#define SYS_SIGNAL 140
+#define SYS_KILL 141
+
+#define SIGCHLD 17
+#define SIGCONT 18
 
 #define VIDEO_MUTEX 0
 
@@ -54,6 +59,7 @@ typedef struct
 	tf_t *tf_p;
 	unsigned int wake_time, time_count, total_time;	// pertaining to time.
 	unsigned int ppid;
+	func_p_t signal_handler[32];
 } pcb_t;
 
 typedef struct
