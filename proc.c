@@ -1,7 +1,7 @@
-// proc.c, 159 processes are coded here 
-#include "const-type.h" 
-#include "ext-data.h" 
-#include "proc.h" 
+// proc.c, 159 processes are coded here
+#include "const-type.h"
+#include "ext-data.h"
+#include "proc.h"
 #include "syscall.h"
 #include "tools.h"
 
@@ -50,11 +50,13 @@ void Init(void)
 	char pid_str[20];
 
 	sys_signal(SIGCHLD, MyChildExitHandler);
-	for(i = 0; i < 5; i++) {
+	for(i = 0; i < 5; i++)
+	{
 		forked = sys_fork();
-		if (forked == 0) 
+		if (forked == 0)
 			break;	// children don't loop!
-		if (forked == NONE) {
+		if (forked == NONE)
+		{
 			sys_write("sys_fork() failed\n");
 			sys_exit(NONE);
 		}
@@ -64,7 +66,8 @@ void Init(void)
 	if (forked > 0) {
 		sys_sleep(10);
 		sys_kill(0, SIGCONT);
-		while(1) {
+		while(1)
+		{
 			sys_lock_mutex(VIDEO_MUTEX);
 			sys_set_cursor(pid, 0);
 			sys_write(pid_str);
@@ -103,10 +106,11 @@ void Init(void)
 }
 
 // putting it here because that makes sense
-void MyChildExitHandler(void) {
+void MyChildExitHandler(void)
+{
 	char ecStr[20], childPidStr[20];
 	int pid, childPid, ec;
-	
+
 	childPid = sys_wait(&ec);
 	pid = sys_get_pid();
 	Number2Str(childPid, childPidStr);

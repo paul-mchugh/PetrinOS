@@ -270,7 +270,7 @@ void SysExit(void)
 	{
 		//zombify self and wait for the parent
 		pcb[run_pid].state = ZOMBIE;
-		if (pcb[ppid].signal_handler[SIGCHLD] != 0) 
+		if (pcb[ppid].signal_handler[SIGCHLD] != 0)
 			AlterStack(ppid, pcb[ppid].signal_handler[SIGCHLD]);
 	}
 	run_pid = NONE;
