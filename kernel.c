@@ -18,6 +18,7 @@ unsigned int sys_time_count;	// total time system has been up
 unsigned int sys_rand_count;
 struct i386_gate *idt;			// interrupt descriptor table
 mutex_t video_mutex;
+kb_t kb;
 
 void BootStrap(void)	// set up kernel!
 {
@@ -29,6 +30,7 @@ void BootStrap(void)	// set up kernel!
 	Bzero((char *)&avail_que, sizeof(que_t));
 	Bzero((char *)&ready_que, sizeof(que_t));
 	Bzero((char *)&video_mutex, sizeof(mutex_t));
+	Bzero((char *)&kb, sizeof(kb_t));
 	//enqueue all the available PID numbers to avail queue(none yet)
 	for(i=0;i<PROC_MAX;i++) EnQue(i,&avail_que);
 
@@ -47,7 +49,7 @@ int main(void)		// OS starts
 	BootStrap();
 
 	SpawnSR(Idle);	// create Idle thread
-	SpawnSR(Init);
+	SpawnSR(Login);
 	run_pid = IDLE;
 	Loader(pcb[run_pid].tf_p);
 
@@ -91,7 +93,7 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	}
 
 	// 'b' key on target PC is pressed, goto the GDB prompt
-	if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
+	KBSR();	//if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
 
 	Scheduler();
 	Loader(pcb[run_pid].tf_p);
