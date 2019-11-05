@@ -149,7 +149,7 @@ void SysWrite(void)
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
 	while (*str != '\0')
 	{
-		if (str == '\r')
+		if (*str == '\r')
 		{
 			row = (sys_cursor - VIDEO_START)/80;
 			sys_cursor = (row + 1) * 80 + VIDEO_START;
@@ -168,7 +168,7 @@ void SysWrite(void)
 		sys_cursor = VIDEO_START;
 		while (sys_cursor != VIDEO_END)
 		{
-			*sys_sursor = VGA_MASK_VAL | ' ';
+			*sys_cursor = VGA_MASK_VAL | ' ';
 			sys_cursor++;
 		}
 		sys_cursor = VIDEO_START;

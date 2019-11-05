@@ -18,5 +18,5 @@ extern unsigned int sys_time_count;	// total time the system has been up
 extern struct i386_gate *idt;		// interrupt descriptor table
 extern unsigned int sys_rand_count;
 extern mutex_t video_mutex;
-
+extern kb_t kb;
 #endif
