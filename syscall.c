@@ -181,7 +181,7 @@ void sys_read(char *str)
 			: "eax", "ebx"
 		);
 		sys_write(prstr);	// "echo" at sys_cursor
-		if (nc == '\r')
+		if (prstr[0] == '\r')
 			break;
 
 	}
