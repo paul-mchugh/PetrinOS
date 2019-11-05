@@ -123,16 +123,21 @@ void MyChildExitHandler(void)
 	sys_unlock_mutex(VIDEO_MUTEX);
 }
 
-void Login(void) {
+void Login(void)
+{
 	char login_str[STR_MAX], passwd_str[STR_MAX];
-	while (1) {
+	while (1)
+	{
 		sys_write("login: ");
 		sys_read(login_str);
 		sys_write("passwd: ");
 		sys_read(passwd_str);
-		if (StrCmp(login_str, passwd_str)) {	// security >_< 
+		if (StrCmp(login_str, passwd_str))		// security >_<
+		{
 			sys_write("login failed!\r");
-		} else {
+		}
+		else
+		{
 			sys_write("login successful!\r");
 			// break;	// phase8
 		}

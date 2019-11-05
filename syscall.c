@@ -165,22 +165,21 @@ void sys_kill(int pid, int signal_name)
 	);
 }
 
-void sys_read(char *str) {
+void sys_read(char *str)
+{
 	int indx;
-	char nc;
-	char prstr[2];	
+	char prstr[2];
 	prstr[1] = '\0';	// so syswrite doesn't write more then one character
-	count = 0;
-	while (indx != STR_MAX - 1) {
-		asm("movl %0, %%eax;
-			movl %1, %%ebx;
-			int $128"
-			:
+	while (indx != STR_MAX - 1)
+	{
+		asm("movl %1, %%eax;
+			movl %2, %%ebx;
+			int $128;
+			movb %%ebx, %0"
+			: "=g" (prstr[0])
 			: "g" (SYS_READ), "g" (str)
 			: "eax", "ebx"
-		   );
-		nc = (char) pcb[run_pid].tf_p->ebx;
-		prstr[0] = nc;
+		);
 		sys_write(prstr);	// "echo" at sys_cursor
 		if (nc == '\r')
 			break;
