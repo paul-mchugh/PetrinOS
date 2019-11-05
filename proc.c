@@ -132,13 +132,13 @@ void Login(void)
 		sys_read(login_str);
 		sys_write("passwd: ");
 		sys_read(passwd_str);
-		if (StrCmp(login_str, passwd_str))		// security >_<
+		if (StrCmp(login_str, passwd_str)==0)		// security >_<
 		{
-			sys_write("login failed!\r");
+			sys_write("login successful!\r");
 		}
 		else
 		{
-			sys_write("login successful!\r");
+			sys_write("login failed!\r");
 			// break;	// phase8
 		}
 	}

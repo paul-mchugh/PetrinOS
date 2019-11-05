@@ -167,17 +167,16 @@ void sys_kill(int pid, int signal_name)
 
 void sys_read(char *str)
 {
-	int indx;
+	int indx = 0;
 	char prstr[2];
 	prstr[1] = '\0';	// so syswrite doesn't write more then one character
 	while (indx != STR_MAX - 1)
 	{
 		asm("movl %1, %%eax;
-			movl %2, %%ebx;
 			int $128;
 			movb %%ebx, %0"
-			: "=g" (prstr[0])
-			: "g" (SYS_READ), "g" (str)
+			: "=g" (*prstr)
+			: "g" (SYS_READ)
 			: "eax", "ebx"
 		);
 		sys_write(prstr);	// "echo" at sys_cursor

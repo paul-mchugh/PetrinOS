@@ -375,7 +375,7 @@ void KBSR(void) {
 	nc = cons_getchar();
 	if (nc == '$')
 		breakpoint();
-	if (!QueEmpty(&kb.wait_que))
+	if (QueEmpty(&kb.wait_que))
 	{
 		EnQue((int)nc, &kb.buffer);
 	}
