@@ -92,7 +92,6 @@ void Kernel(tf_t *tf_p)		// kernel runs
 		KPANIC_UCOND("Kernel Panic: no such event!\n");
 	}
 
-	// 'b' key on target PC is pressed, goto the GDB prompt
 	KBSR();	//if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
 
 	Scheduler();

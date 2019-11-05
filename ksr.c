@@ -149,23 +149,26 @@ void SysWrite(void)
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
 	while (*str != '\0')
 	{
-		if (str == '\r') {	
+		if (str == '\r')
+		{
 			row = (sys_cursor - VIDEO_START)/80;
 			sys_cursor = (row + 1) * 80 + VIDEO_START;
-		} 
-		else 
+		}
+		else
 		{
-		*sys_cursor = VGA_MASK_VAL | *str;
-		//increment the cursor and string position
-		sys_cursor++;
+			*sys_cursor = VGA_MASK_VAL | *str;
+			//increment the cursor and string position
+			sys_cursor++;
 		}
 		str++;
 	}
-	// if sys_cursor exceeds the end of the screen, clear and set to VIDEO_START 
-	if (sys_cursor >= VIDEO_END) {
+	// if sys_cursor exceeds the end of the screen, clear and set to VIDEO_START
+	if (sys_cursor >= VIDEO_END)
+	{
 		sys_cursor = VIDEO_START;
-		while (sys_cursor != VIDEO_END) {
-			VGA_MASK_VAL | ' ';
+		while (sys_cursor != VIDEO_END)
+		{
+			*sys_sursor = VGA_MASK_VAL | ' ';
 			sys_cursor++;
 		}
 		sys_cursor = VIDEO_START;
@@ -348,12 +351,16 @@ void SysKill(void)
 	}
 }
 
-void SysRead(void) {
-	char nc;	
-	if (!QueEmpty(&kb.buffer)) {			// checks if kb buffer is empty
+void SysRead(void)
+{
+	char nc;
+	if (!QueEmpty(&kb.buffer))				// checks if kb buffer is empty
+	{
 		nc = (char)DeQue(&kb.buffer);		// takes next char in the buffer, BL from EBX
 		pcb[run_pid].tf_p->ebx = (int) nc;	// places BL back into EBX
-	} else {
+	}
+	else
+	{
 		EnQue(run_pid, &kb.wait_que);
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;
@@ -368,12 +375,15 @@ void KBSR(void) {
 	nc = cons_getchar();
 	if (nc == '$')
 		breakpoint();
-	if (!QueEmpty(&kb.wait_que)) {
-		pid = DeQue(&kb.wait_que);	
+	if (!QueEmpty(&kb.wait_que))
+	{
+		EnQue((int)nc, &kb.buffer);
+	}
+	else
+	{
+		pid = DeQue(&kb.wait_que);
 		pcb[pid].state = READY;
 		pcb[pid].tf_p->ebx = (int)nc;
 		EnQue(pid, &ready_que);
-	} else {
-		EnQue((int)nc, &kb.buffer);
 	}
 }
