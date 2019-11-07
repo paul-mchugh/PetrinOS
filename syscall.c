@@ -170,7 +170,7 @@ void sys_read(char *str)
 	int indx = 0;
 	char prstr[2];
 	prstr[1] = '\0';	// so syswrite doesn't write more then one character
-	while (indx != STR_MAX - 1)
+	for(indx=0;indx<STR_MAX-1;indx++)
 	{
 		asm("movl %1, %%eax;
 			int $128;
@@ -179,10 +179,10 @@ void sys_read(char *str)
 			: "g" (SYS_READ)
 			: "eax", "ebx"
 		);
+		str[indx]=*prstr;
 		sys_write(prstr);	// "echo" at sys_cursor
 		if (prstr[0] == '\r')
 			break;
-
 	}
 	str[indx] = '\0';
 }
