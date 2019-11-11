@@ -61,6 +61,7 @@ int main(void)		// OS starts
 	SpawnSR(Idle);	// create Idle thread
 	SpawnSR(Login);
 	run_pid = IDLE;
+	set_cr3(pcb[run_pid].Dir);
 	Loader(pcb[run_pid].tf_p);
 
 	return 0;		// never would actually reach here
@@ -105,6 +106,7 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	KBSR();	//if(cons_kbhit()&&cons_getchar()=='b') breakpoint();
 
 	Scheduler();
+	set_cr3(pcb[run_pid].Dir);
 	Loader(pcb[run_pid].tf_p);
 }
 

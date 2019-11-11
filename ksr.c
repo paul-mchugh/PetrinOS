@@ -120,6 +120,9 @@ void SyscallSR(void)
 		EnQue(run_pid, &ready_que);
 		run_pid = NONE;
 	}
+
+	//switch to Kernel VM
+	set_cr3(KDir);
 }
 
 void AlterStack(int pid, func_p_t p)
@@ -133,6 +136,27 @@ void AlterStack(int pid, func_p_t p)
 	//insert original EIP in gap & set eip to handler function
 	*retEIP = pcb[pid].tf_p->eip;
 	pcb[pid].tf_p->eip = (int)p;
+}
+
+void KBSR(void) {
+	char nc;
+	int pid;
+	if (!cons_kbhit())	// if nothing, return
+		return;
+	nc = cons_getchar();
+	if (nc == '$')
+		breakpoint();
+	if (QueEmpty(&kb.wait_que))
+	{
+		EnQue((int)nc, &kb.buffer);
+	}
+	else
+	{
+		pid = DeQue(&kb.wait_que);
+		pcb[pid].state = READY;
+		pcb[pid].tf_p->ebx = (int)nc;
+		EnQue(pid, &ready_que);
+	}
 }
 
 void SysSleep(void)
@@ -272,8 +296,10 @@ void SysUnlockMutex(void)
 
 void SysExit(void)
 {
+	int i;
 	int ppid = pcb[run_pid].ppid;
 	int ec = pcb[run_pid].tf_p->ebx;
+
 	if(pcb[ppid].state == WAIT)
 	{
 		//parent was waiting on us we need to wake it up and set its wait returns
@@ -284,6 +310,9 @@ void SysExit(void)
 		//cleanup self
 		pcb[run_pid].state = AVAIL;
 		EnQue(run_pid, &avail_que);
+		//wipe out own pages
+		for(i=0;i<PAGE_MAX;i++)
+			if(pages[i].pid==run_pid) pages[i].pid = NONE;
 	}
 	else
 	{
@@ -316,6 +345,9 @@ void SysWait(void)
 		//cleanup child
 		pcb[zpid].state = AVAIL;
 		EnQue(zpid, &avail_que);
+		//wipe out own pages
+		for(i=0;i<PAGE_MAX;i++)
+			if(pages[i].pid==run_pid) pages[i].pid = NONE;
 	}
 	else
 	{
@@ -364,26 +396,5 @@ void SysRead(void)
 		EnQue(run_pid, &kb.wait_que);
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;
-	}
-}
-
-void KBSR(void) {
-	char nc;
-	int pid;
-	if (!cons_kbhit())	// if nothing, return
-		return;
-	nc = cons_getchar();
-	if (nc == '$')
-		breakpoint();
-	if (QueEmpty(&kb.wait_que))
-	{
-		EnQue((int)nc, &kb.buffer);
-	}
-	else
-	{
-		pid = DeQue(&kb.wait_que);
-		pcb[pid].state = READY;
-		pcb[pid].tf_p->ebx = (int)nc;
-		EnQue(pid, &ready_que);
 	}
 }

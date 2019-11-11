@@ -167,6 +167,7 @@ void sys_kill(int pid, int signal_name)
 
 void sys_read(char *str)
 {
+	/*
 	int indx = 0;
 	char prstr[2];
 	prstr[1] = '\0';	// so syswrite doesn't write more then one character
@@ -185,4 +186,8 @@ void sys_read(char *str)
 			break;
 	}
 	str[indx] = '\0';
+	*/
+
+	while(QueEmpty(&kb.buffer))sys_sleep(1);
+	ch = DeQue(&kb.buffer);
 }
