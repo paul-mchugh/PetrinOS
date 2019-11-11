@@ -408,7 +408,7 @@ void SysVfork(void)
 
 	//process creation stuff
 	int pid = DeQue(&ready_que);
-	func_p_t launchPtr = (func_p_t)pcb[run_pid].tf->ebx;
+	func_p_t launchPtr = (func_p_t)pcb[run_pid].tf_p->ebx;
 	//queue new process
 	EnQue(pid, &ready_que);
 	// pcb copied and updated with new values
@@ -426,23 +426,23 @@ void SysVfork(void)
 		else if(!IT) IT=i;
 		else if(!DT) DT=i;
 		else if(!IP) IP=i;
-		else if(!DP) DP=i, break;
+		else if(!DP) {DP=i; break;}
 	}
 	//if we couldn't find 5 free pages then panic
-	KPANIC(!(Dir&&IT&&DT&&IP&&DP)),"Panic: out of memory, can't vfork process!\n");
+	KPANIC(!(Dir&&IT&&DT&&IP&&DP),"Panic: out of memory, can't vfork process!\n");
 
 	//clear pages and set ownership
 	pages[Dir].pid=pages[IT].pid=pages[DT].pid=pages[IP].pid=pages[DP].pid=pid;
-	Bzero(pages[Dir].u.addr, PAGE_SIZE);
-	Bzero(pages[IT].u.addr, PAGE_SIZE);
-	Bzero(pages[DT].u.addr, PAGE_SIZE);
-	Bzero(pages[IP].u.addr, PAGE_SIZE);
-	Bzero(pages[DP].u.addr, PAGE_SIZE);
+	Bzero(pages[Dir].u.content, PAGE_SIZE);
+	Bzero(pages[IT].u.content, PAGE_SIZE);
+	Bzero(pages[DT].u.content, PAGE_SIZE);
+	Bzero(pages[IP].u.content, PAGE_SIZE);
+	Bzero(pages[DP].u.content, PAGE_SIZE);
 
 	//constructing VM translation tables
 	//Dir page
 	//Copy kernel mapping to each processes VM space
-	MemCpy((char*)KDir, pages[Dir].u.addr, 16*sizeof(pages[Dir].u.entry[0]));
+	MemCpy(pages[Dir].u.content, (char*)KDir, 16*sizeof(pages[Dir].u.entry[0]));
 	pages[Dir].u.entry[G1>>22] = pages[IT].u.addr|dFlags;	//copy table for pg w/ instructions
 	pages[Dir].u.entry[G2>>22] = pages[DT].u.addr|dFlags;	//copy table for pg w/ stack
 	pcb[pid].Dir = pages[Dir].u.addr;
@@ -451,15 +451,14 @@ void SysVfork(void)
 	pages[IT].u.entry[G1>>12&&0xfff] = pages[IP].u.addr|dFlags;		//link ins table
 
 	//DT page
-	pages[IT].u.entry[G2>>12&&0xfff] = pages[DP].u.addr|dFlags;		//link data table
+	pages[DT].u.entry[G2>>12&&0xfff] = pages[DP].u.addr|dFlags;		//link data table
 
 	//IP page
-	MemCpy(pages[IP].u.addr, (char*)launchPtr, PAGE_SIZE);		//copying code to Ins Page
+	MemCpy(pages[IP].u.content, (char*)launchPtr, PAGE_SIZE);		//copying code to Ins Page
 
 	//DP page
-	pcb[pid].tf_p = G2-sizeof(*pcb[pid].tf_p);
+	pcb[pid].tf_p = (tf_t*)((char*)G2-sizeof(*pcb[pid].tf_p));
 	pcb[pid].tf_p -> efl = EF_DEFAULT_VALUE|EF_INTR;
 	pcb[pid].tf_p -> cs = get_cs();
 	pcb[pid].tf_p -> eip = G1;
 }
-

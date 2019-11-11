@@ -5,6 +5,11 @@
 #include "syscall.h"
 #include "proc.h"
 
+//begin temporary sys_read hack includes
+#include "ext-data.h"
+#include "tools.h"
+//end temporary sys_read hack includes
+
 int sys_get_pid(void)		// phase2
 {
 	int pid;
@@ -167,12 +172,12 @@ void sys_kill(int pid, int signal_name)
 
 void sys_read(char *str)
 {
-	/*
 	int indx = 0;
 	char prstr[2];
 	prstr[1] = '\0';	// so syswrite doesn't write more then one character
 	for(indx=0;indx<STR_MAX-1;indx++)
 	{
+		/*
 		asm("movl %1, %%eax;
 			int $128;
 			movb %%ebx, %0"
@@ -180,14 +185,14 @@ void sys_read(char *str)
 			: "g" (SYS_READ)
 			: "eax", "ebx"
 		);
+		*/
+		while(QueEmpty(&kb.buffer))sys_sleep(1);
+		*prstr = DeQue(&kb.buffer);
+
 		str[indx]=*prstr;
 		sys_write(prstr);	// "echo" at sys_cursor
 		if (prstr[0] == '\r')
 			break;
 	}
 	str[indx] = '\0';
-	*/
-
-	while(QueEmpty(&kb.buffer))sys_sleep(1);
-	ch = DeQue(&kb.buffer);
 }

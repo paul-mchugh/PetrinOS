@@ -20,7 +20,7 @@ struct i386_gate *idt;			// interrupt descriptor table
 mutex_t video_mutex;
 kb_t kb;
 unsigned int KDir;
-page_t page[PAGE_MAX]
+page_t pages[PAGE_MAX];
 
 void BootStrap(void)	// set up kernel!
 {
@@ -46,8 +46,8 @@ void BootStrap(void)	// set up kernel!
 	KDir = get_cr3();
 	for(i=0;i<PAGE_MAX;i++)
 	{
-		page[i].pid = NONE;
-		page[i].u.addr = DRAM_START+(i*PAGE_SIZE);
+		pages[i].pid = NONE;
+		pages[i].u.addr = DRAM_START+(i*PAGE_SIZE);
 	}
 
 	//send PIC control register the mask value for timer handling

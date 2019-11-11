@@ -20,6 +20,6 @@ extern unsigned int sys_rand_count;
 extern mutex_t video_mutex;
 extern kb_t kb;
 extern unsigned int KDir;
-extern page_t page[PAGE_MAX]
+extern page_t pages[PAGE_MAX];
 
 #endif

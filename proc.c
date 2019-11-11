@@ -135,12 +135,18 @@ void Login(void)
 		if (StrCmp(login_str, passwd_str)==0)		// security >_<
 		{
 			sys_write("login successful!\r");
+			break;	// phase8
 		}
 		else
 		{
 			sys_write("login failed!\r");
-			// break;	// phase8
 		}
 	}
-	// sys_vfork(Shell);		// phase8
+	//sys_vfork(Shell);		// phase8
+	sys_exit(0);
+}
+
+void Shell(void)
+{
+	
 }
