@@ -15,6 +15,10 @@
 #define STACK_MAX 4096			// process stack in bytes
 #define QUE_MAX 20				// capacity of a process queue
 #define STR_MAX 20
+#define PAGE_MAX 100
+#define PAGE_SIZE 4096
+#define G1 0x40000000
+#define G2 0x80000000
 
 #define NONE -1					// to indicate none
 #define IDLE 0					// Idle thread PID 0
@@ -37,6 +41,7 @@
 #define SYS_SIGNAL 140
 #define SYS_KILL 141
 #define SYS_READ 142
+#define SYS_VFORK 143
 
 #define SIGCHLD 17
 #define SIGCONT 18
@@ -45,6 +50,10 @@
 
 #define LOCKED 1
 #define UNLOCKED 0
+
+#define RO			0x00	//page flags
+#define PRESENT		0x01
+#define RW			0x02
 
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
@@ -61,6 +70,7 @@ typedef struct
 	tf_t *tf_p;
 	unsigned int wake_time, time_count, total_time;	// pertaining to time.
 	unsigned int ppid;
+	unsigned int Dir;
 	func_p_t signal_handler[32];
 } pcb_t;
 
@@ -76,10 +86,22 @@ typedef struct
 	que_t suspend_que;
 } mutex_t;
 
-typedef struct {
+typedef struct
+{
 	que_t buffer;
 	que_t wait_que;
 } kb_t;
+
+typedef struct
+{
+	int pid;
+	union
+	{
+		unsigned int addr;
+		char* content;
+		unsigned int* entry;
+	} u;
+} page_t;
 
 #endif							// to prevent name mangling
 

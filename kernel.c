@@ -19,6 +19,8 @@ unsigned int sys_rand_count;
 struct i386_gate *idt;			// interrupt descriptor table
 mutex_t video_mutex;
 kb_t kb;
+unsigned int KDir;
+page_t page[PAGE_MAX]
 
 void BootStrap(void)	// set up kernel!
 {
@@ -39,6 +41,14 @@ void BootStrap(void)	// set up kernel!
 	//setup IDT events
 	fill_gate(&idt[TIMER_EVENT], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
 	fill_gate(&idt[SYSCALL_EVENT], (int)SyscallEntry, get_cs(), ACC_INTR_GATE, 0);
+
+	//virtual memory initialization
+	KDir = get_cr3();
+	for(i=0;i<PAGE_MAX;i++)
+	{
+		page[i].u.addr = DRAM_START+(i*PAGE_SIZE);
+	}
+
 	//send PIC control register the mask value for timer handling
 	outportb(PIC_MASK_REG, PIC_MASK_VAL);
 }
