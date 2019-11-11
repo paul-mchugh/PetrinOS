@@ -8,6 +8,8 @@
 void SpawnSR(func_p_t p);
 void TimerSR(void);
 void SyscallSR(void);
+void AlterStack(int pid, func_p_t p);
+void KBSR(void);
 void SysSleep(void);
 void SysWrite(void);
 void SysSetCursor(void);
@@ -18,8 +20,7 @@ void SysExit(void);
 void SysWait(void);
 void SysSignal(void);
 void SysKill(void);
-void AlterStack(int pid, func_p_t p);
 void SysRead(void);
-void KBSR(void);
+void SysVfork(void);
 
 #endif
