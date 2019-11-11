@@ -111,6 +111,9 @@ void SyscallSR(void)
 		case SYS_READ:
 			SysRead();
 			break;
+		case SYS_VFORK:
+			SysVfork();
+			break;
 		default:
 			KPANIC_UCOND("Kernel Panic: no such syscall!\n");
 	}
@@ -129,6 +132,8 @@ void AlterStack(int pid, func_p_t p)
 {
 	int* retEIP = &pcb[pid].tf_p->efl;	//store pointer to place where return ptr goes
 
+	set_cr3(pcb[pid].Dir);		//change address space to that of the target pid
+
 	//lower the trapframe by 4 bytes
 	MemCpy(((char*)pcb[pid].tf_p)-4, (char*)pcb[pid].tf_p, sizeof(tf_t));
 	pcb[pid].tf_p = (tf_t*)(((char*)pcb[pid].tf_p)-4);
@@ -136,6 +141,7 @@ void AlterStack(int pid, func_p_t p)
 	//insert original EIP in gap & set eip to handler function
 	*retEIP = pcb[pid].tf_p->eip;
 	pcb[pid].tf_p->eip = (int)p;
+	set_cr3(pcb[run_pid].Dir);	//change address space to the callers pid
 }
 
 void KBSR(void) {
@@ -154,7 +160,9 @@ void KBSR(void) {
 	{
 		pid = DeQue(&kb.wait_que);
 		pcb[pid].state = READY;
+		set_cr3(pcb[pid].Dir);		//set the address space to the receiving process
 		pcb[pid].tf_p->ebx = (int)nc;
+		set_cr3(pcb[run_pid].Dir);	//restore the interrupted processes address space
 		EnQue(pid, &ready_que);
 	}
 }
@@ -307,7 +315,9 @@ void SysExit(void)
 		pcb[ppid].state = READY;
 		EnQue(ppid, &ready_que);
 		*((int*)pcb[ppid].tf_p->ebx) = ec;
+		set_cr3(pcb[ppid].Dir);		//switch address space to parents address space
 		pcb[ppid].tf_p->ebx = run_pid; //exiting program
+		set_cr3(pcb[run_pid].Dir);	//restore old address space
 		//cleanup self
 		pcb[run_pid].state = AVAIL;
 		EnQue(run_pid, &avail_que);
@@ -329,6 +339,7 @@ void SysWait(void)
 {
 	int i = 0;
 	int zpid = NONE;
+	int exCode;
 	//look through the pcb for our zombie children
 	for(i=0;i<PROC_MAX;i++)
 	{
@@ -341,7 +352,10 @@ void SysWait(void)
 	if(zpid!=NONE)
 	{
 		//set the return registers
-		*((int*)pcb[run_pid].tf_p->ebx) = pcb[zpid].tf_p->ebx; //exit code
+		set_cr3(pcb[zpid].Dir);	//switch to zombie childs address space
+		exCode = pcb[zpid].tf_p->ebx;
+		set_cr3(pcb[run_pid].Dir);	//switch back to parent's address space
+		*((int*)pcb[run_pid].tf_p->ebx) = exCode; //exit code
 		pcb[run_pid].tf_p->ebx = zpid; //exiting program
 		//cleanup child
 		pcb[zpid].state = AVAIL;

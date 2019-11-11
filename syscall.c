@@ -196,3 +196,14 @@ void sys_read(char *str)
 	}
 	str[indx] = '\0';
 }
+
+void sys_vfork(func_p_t p)
+{
+	asm("movl %0, %%eax;
+		movl %1, %%ebx;
+		int $128"
+		:
+		: "g" (SYS_VFORK), "g" (p)
+		: "eax", "ebx", "ecx"
+	);
+}
