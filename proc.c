@@ -158,7 +158,7 @@ void Shell(void)
 		sys_read(command);
 
 		//determine program to run/whether to print help
-		if(StrCmp(command,"dir")==0)prog=NULL;
+		if(StrCmp(command,"dir")==0)prog=ShellDir;
 		else if(StrCmp(command,"cal")==0)prog=NULL;
 		else if(StrCmp(command,"roll")==0)prog=NULL;
 		else prog=NULL;
@@ -174,7 +174,7 @@ void Shell(void)
 			sys_write(ePidStr);
 			sys_write("   Exit Code: ");
 			sys_write(progEcStr);
-			sys_write("\n");
+			sys_write("\r");
 		}
 		else
 		{
@@ -183,3 +183,17 @@ void Shell(void)
 	}
 }
 
+void ShellDir(void)
+{
+	sys_write("\r\
+   drwx 4096 ./\r\
+   drwx 4096 ../\r\
+   drwx   28 README.md/\r\
+   drwx 1311 GDB159.RC/\r\
+   drwx   40 .gitignore/\r\
+");
+	sys_exit(0);
+}
+
+void ShellCal(void);
+void ShellRoll(void);

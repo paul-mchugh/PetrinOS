@@ -314,8 +314,8 @@ void SysExit(void)
 		//parent was waiting on us we need to wake it up and set its wait returns
 		pcb[ppid].state = READY;
 		EnQue(ppid, &ready_que);
-		*((int*)pcb[ppid].tf_p->ebx) = ec;
 		set_cr3(pcb[ppid].Dir);		//switch address space to parents address space
+		*((int*)pcb[ppid].tf_p->ebx) = ec;
 		pcb[ppid].tf_p->ebx = run_pid; //exiting program
 		set_cr3(pcb[run_pid].Dir);	//restore old address space
 		//cleanup self
@@ -452,8 +452,6 @@ void SysVfork(void)
 	Bzero(pages[DT].u.content, PAGE_SIZE);
 	Bzero(pages[IP].u.content, PAGE_SIZE);
 	Bzero(pages[DP].u.content, PAGE_SIZE);
-
-	breakpoint();
 
 	//constructing VM translation tables
 	//Dir page
