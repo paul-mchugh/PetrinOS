@@ -31,7 +31,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	pcb[pid].tf_p -> efl = EF_DEFAULT_VALUE|EF_INTR;	// handle intr
 	pcb[pid].tf_p -> cs = get_cs();						// duplicate from CPU
 	pcb[pid].tf_p -> eip = DRAM_START + STACK_MAX*pid;	// where code copied
-
+	pcb[pid].Dir = KDir; //Kernel initialized & forked process are run in real memory
 }
 
 // count run time and switch if hitting time limit
@@ -238,6 +238,7 @@ void SysFork(void)
 	pcb[pid].tf_p -> ebp += offset;
 	*((int*)pcb[pid].tf_p -> ebp) += offset;
 	*(((int*)pcb[pid].tf_p -> ebp)+1) += offset;
+	pcb[pid].Dir = KDir; //Kernel initialized & forked process are run in real memory
 
 	// setting the return values for sys_fork()
 	pcb[run_pid].tf_p -> ebx = pid;
