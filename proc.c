@@ -142,11 +142,44 @@ void Login(void)
 			sys_write("login failed!\r");
 		}
 	}
-	//sys_vfork(Shell);		// phase8
+	sys_vfork(Shell);		// phase8
 	sys_exit(0);
 }
 
 void Shell(void)
 {
-	
+	char command[STR_MAX], ePidStr[STR_MAX], progEcStr[STR_MAX];
+	func_p_t prog = NULL;
+	int progEc;
+	int ePid;
+	for(;;)
+	{
+		sys_write("PetrinOS> ");
+		sys_read(command);
+
+		//determine program to run/whether to print help
+		if(StrCmp(command,"dir")==0)prog=NULL;
+		else if(StrCmp(command,"cal")==0)prog=NULL;
+		else if(StrCmp(command,"roll")==0)prog=NULL;
+		else prog=NULL;
+
+		//start program if not NULL/print error if NULL
+		if(prog)
+		{
+			sys_vfork(prog);
+			ePid = sys_wait(&progEc);
+			Number2Str(ePid, ePidStr);
+			Number2Str(progEc, progEcStr);
+			sys_write("   Exited Pid: ");
+			sys_write(ePidStr);
+			sys_write("   Exit Code: ");
+			sys_write(progEcStr);
+			sys_write("\n");
+		}
+		else
+		{
+			sys_write("   Valid commands are:\r      dir -- displays directory content.\r      cal -- displays calendar.\r      roll -- roll a pair of dice.\r");
+		}
+	}
 }
+

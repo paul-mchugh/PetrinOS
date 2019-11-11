@@ -418,10 +418,10 @@ void SysVfork(void)
 {
 	int Dir=0, IT=0, DT=0, IP=0, DP=0;
 	int i;
-	int dFlags = RO|PRESENT;
+	int dFlags = RW|PRESENT;
 
 	//process creation stuff
-	int pid = DeQue(&ready_que);
+	int pid = DeQue(&avail_que);
 	func_p_t launchPtr = (func_p_t)pcb[run_pid].tf_p->ebx;
 	//queue new process
 	EnQue(pid, &ready_que);
@@ -433,7 +433,7 @@ void SysVfork(void)
 	pcb[pid].ppid = run_pid;
 
 	//find pages
-	for(i=0;i<PAGE_MAX;i++)
+	for(i=16;i<PAGE_MAX;i++)
 	{
 		if(pages[i].pid!=NONE) continue;
 		else if(!Dir) Dir=i;
@@ -453,26 +453,28 @@ void SysVfork(void)
 	Bzero(pages[IP].u.content, PAGE_SIZE);
 	Bzero(pages[DP].u.content, PAGE_SIZE);
 
+	breakpoint();
+
 	//constructing VM translation tables
 	//Dir page
 	//Copy kernel mapping to each processes VM space
 	MemCpy(pages[Dir].u.content, (char*)KDir, 16*sizeof(pages[Dir].u.entry[0]));
-	pages[Dir].u.entry[G1>>22] = pages[IT].u.addr|dFlags;	//copy table for pg w/ instructions
-	pages[Dir].u.entry[G2>>22] = pages[DT].u.addr|dFlags;	//copy table for pg w/ stack
+	pages[Dir].u.entry[256] = pages[IT].u.addr|dFlags;	//copy table for pg w/ instructions
+	pages[Dir].u.entry[511] = pages[DT].u.addr|dFlags;	//copy table for pg w/ stack
 	pcb[pid].Dir = pages[Dir].u.addr;
 
 	//IT page
-	pages[IT].u.entry[G1>>12&&0xfff] = pages[IP].u.addr|dFlags;		//link ins table
+	pages[IT].u.entry[0] = pages[IP].u.addr|dFlags;		//link ins table
 
 	//DT page
-	pages[DT].u.entry[G2>>12&&0xfff] = pages[DP].u.addr|dFlags;		//link data table
+	pages[DT].u.entry[1023] = pages[DP].u.addr|dFlags;	//link data table
 
 	//IP page
 	MemCpy(pages[IP].u.content, (char*)launchPtr, PAGE_SIZE);		//copying code to Ins Page
 
 	//DP page
 	pcb[pid].tf_p = (tf_t*)((char*)G2-sizeof(*pcb[pid].tf_p));
-	pcb[pid].tf_p -> efl = EF_DEFAULT_VALUE|EF_INTR;
-	pcb[pid].tf_p -> cs = get_cs();
-	pcb[pid].tf_p -> eip = G1;
+	pages[DP].u.entry[1023] = EF_DEFAULT_VALUE|EF_INTR;
+	pages[DP].u.entry[1022] = get_cs();
+	pages[DP].u.entry[1021] = G1;
 }
