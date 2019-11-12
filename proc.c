@@ -159,8 +159,8 @@ void Shell(void)
 
 		//determine program to run/whether to print help
 		if(StrCmp(command,"dir")==0)prog=ShellDir;
-		else if(StrCmp(command,"cal")==0)prog=NULL;
-		else if(StrCmp(command,"roll")==0)prog=NULL;
+		else if(StrCmp(command,"cal")==0)prog=ShellCal;
+		else if(StrCmp(command,"roll")==0)prog=ShellRoll;
 		else prog=NULL;
 
 		//start program if not NULL/print error if NULL
@@ -195,5 +195,23 @@ void ShellDir(void)
 	sys_exit(0);
 }
 
-void ShellCal(void);
-void ShellRoll(void);
+void ShellCal(void)
+{
+	sys_write("\
+      November 2019    \r\
+                   1  2\r\
+    3  4  5  6  7  8  9\r\
+   10 11 12 13 14 15 16\r\
+   17 18 19 20 21 22 23\r\
+   24 25 26 27 28 29 30\r\
+");
+	sys_exit(0);
+}
+void ShellRoll(void)
+{
+	int r1, r2;
+	r1 = sys_get_rand()%6+1;
+	sys_sleep(1);//sleeping to give Idle a chance to run and change the random #
+	r2 = sys_get_rand()%6+1;
+	sys_exit(r1+r2);
+}
