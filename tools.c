@@ -97,12 +97,18 @@ void Number2Str(int n, char *res)
 	char digit;
 	char minValStr[] = "-2147483648";
 	//if n is the minimum 32-bit int value we can not multiply by -1, so this is a special case
-	if(n==~((int)0))
+	if(n==0x7fffffff)
 	{
 		for(i=0;i<sizeof(minValStr);i++)
 		{
 			res[i]=minValStr[i];
 		}
+		return;
+	}
+	else if(n==0)
+	{
+		res[0]='0';
+		res[1]='\0';
 		return;
 	}
 

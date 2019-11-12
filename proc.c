@@ -185,7 +185,7 @@ void Shell(void)
 
 void ShellDir(void)
 {
-	sys_write("\r\
+	sys_write("\
    drwx 4096 ./\r\
    drwx 4096 ../\r\
    drwx   28 README.md/\r\
