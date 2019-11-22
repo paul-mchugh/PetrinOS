@@ -5,7 +5,7 @@
 
 #define TIMER_EVENT 32			// timer interrupt signal code
 #define PIC_MASK_REG 0x21		// I/O loc # of PIC mask
-#define PIC_MASK_VAL ~0x01		// mask code for PIC
+#define PIC_MASK_VAL ~0x09		// mask code for PIC
 #define PIC_CONT_REG 0x20		// I/O loc # of PIc control
 #define TIMER_SERVED_VAL 0x60	// control code sent to PIC
 #define VGA_MASK_VAL 0x0f00		// bold face, white on black
@@ -55,6 +55,12 @@
 #define PRESENT		0x01
 #define RW			0x02
 
+#define CONSOLE 100
+#define TTY 200
+#define TTY_EVENT 35
+#define TTY_SERVED_VAL 0x63
+#define TTY0 0x2f8
+
 typedef void (*func_p_t)(void);	// void-return function pointer type
 
 typedef enum {AVAIL, READY, RUN, SLEEP, SUSPEND, WAIT, ZOMBIE, IO_WAIT} state_t;
@@ -72,6 +78,7 @@ typedef struct
 	unsigned int ppid;
 	unsigned int Dir;
 	func_p_t signal_handler[32];
+	int STDOUT;
 } pcb_t;
 
 typedef struct
@@ -102,6 +109,13 @@ typedef struct
 		unsigned int* entry;
 	} u;
 } page_t;
+
+typedef struct
+{
+	char *str;
+	que_t wait_que;
+	int port;
+} tty_t;
 
 #endif							// to prevent name mangling
 
