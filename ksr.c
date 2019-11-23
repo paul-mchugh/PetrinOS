@@ -19,6 +19,12 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	Bzero((char*)&pcb[pid],sizeof(pcb_t));
 	pcb[pid].state = READY;
 
+	// handling STDOUT
+	if (pid == IDLE)
+		pcb[pid].STDOUT = CONSOLE;
+	else 
+		pcb[pid].STDOUT = TTY;
+
 	//if 'pid' is not IDLE, use a tool function to enqueue it to the ready queue
 	if(pid != IDLE) EnQue(pid, &ready_que);
 
@@ -179,31 +185,56 @@ void SysWrite(void)
 {
 	int row;
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
-	while (*str != '\0')
-	{
-		if (*str == '\r')
-		{
-			row = (sys_cursor - VIDEO_START)/80;
-			sys_cursor = (row + 1) * 80 + VIDEO_START;
+
+	// TTY
+	if (pcb[run_pid].STDOUT == TTY) {
+		unsigned cnt;
+		cntr = 0;
+		// copy the string address to the 'str" in 'tty'
+		while (*(str + cntr) != '\0') {
+			*(tty.str + cntr) = *(str + cntr)
+			cntr++;
 		}
-		else
-		{
-			*sys_cursor = VGA_MASK_VAL | *str;
-			//increment the cursor and string position
-			sys_cursor++;
-		}
-		str++;
+		// suspend the process in the wait queue of 'tty'
+		EnQue(run_pid, &tty.wait_que);
+		pcb[run_pid].state = IO_WAIT;
+		run_pid = NONE;
+		TTYSR();
+		return; // if STDOUT is true, don't do anything else
 	}
-	// if sys_cursor exceeds the end of the screen, clear and set to VIDEO_START
-	if (sys_cursor >= VIDEO_END)
-	{
-		sys_cursor = VIDEO_START;
-		while (sys_cursor != VIDEO_END)
+	
+	// CONSOLE
+	else if (pcb[run_pid].STDOUT == CONSOLE) {
+		while (*str != '\0')
 		{
-			*sys_cursor = VGA_MASK_VAL | ' ';
-			sys_cursor++;
+			if (*str == '\r')
+			{
+				row = (sys_cursor - VIDEO_START)/80;
+				sys_cursor = (row + 1) * 80 + VIDEO_START;
+			}
+			else
+			{
+				*sys_cursor = VGA_MASK_VAL | *str;
+				//increment the cursor and string position
+				sys_cursor++;
+			}
+			str++;
 		}
-		sys_cursor = VIDEO_START;
+		// if sys_cursor exceeds the end of the screen, clear and set to VIDEO_START
+		if (sys_cursor >= VIDEO_END)
+		{
+			sys_cursor = VIDEO_START;
+			while (sys_cursor != VIDEO_END)
+			{
+				*sys_cursor = VGA_MASK_VAL | ' ';
+				sys_cursor++;
+			}
+			sys_cursor = VIDEO_START;
+		}
+	}
+	// panic
+	else {
+		KPANIC_UNCOND("Panic: no such device!");
 	}
 }
 
@@ -475,4 +506,13 @@ void SysVfork(void)
 	pages[DP].u.entry[1023] = EF_DEFAULT_VALUE|EF_INTR;
 	pages[DP].u.entry[1022] = get_cs();
 	pages[DP].u.entry[1021] = G1;
+}
+
+void TTYSR() {
+	int pid;
+	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
+	if (QueEmpty(&tty.wait_que)
+		return;
+	pid = DeQue(&tty.wait_que);
+	// still needs to be finished
 }

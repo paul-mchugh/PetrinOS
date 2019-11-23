@@ -38,3 +38,15 @@ ENTRY(SyscallEntry)					// similar to timer entry
 	push %ecx
 	cld
 	call CNAME(Kernel)
+
+ENTRY(TTYEntry)					
+	pushl $35		
+	pusha
+	movl %esp, %ecx
+	movw $0x10, %ax
+	mov %ax, %ds
+	mov %ax, %es
+	leal kstack+KSTACK_MAX, %esp
+	push %ecx
+	cld
+	call CNAME(Kernel)

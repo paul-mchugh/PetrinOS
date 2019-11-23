@@ -21,6 +21,7 @@ mutex_t video_mutex;
 kb_t kb;
 unsigned int KDir;
 page_t pages[PAGE_MAX];
+tty_t tty;
 
 void BootStrap(void)	// set up kernel!
 {
@@ -41,6 +42,7 @@ void BootStrap(void)	// set up kernel!
 	//setup IDT events
 	fill_gate(&idt[TIMER_EVENT], (int)TimerEntry, get_cs(), ACC_INTR_GATE, 0);
 	fill_gate(&idt[SYSCALL_EVENT], (int)SyscallEntry, get_cs(), ACC_INTR_GATE, 0);
+	fill_gate(&idt[TTY_EVENT], (int)TTYEntry, get_cs(), ACC_INTR_GATE, 0);
 
 	//virtual memory initialization
 	KDir = get_cr3();
@@ -58,6 +60,7 @@ int main(void)		// OS starts
 {
 	//do the boot strap things 1st
 	BootStrap();
+	TTYinit();	// init. term. port
 
 	SpawnSR(Idle);	// create Idle thread
 	SpawnSR(Login);
@@ -99,6 +102,9 @@ void Kernel(tf_t *tf_p)		// kernel runs
 		break;
 	case SYSCALL_EVENT:
 		SyscallSR();
+		break;
+	case TTY_EVENT:
+		TTYSR();
 		break;
 	default:
 		KPANIC_UCOND("Kernel Panic: no such event!\n");
