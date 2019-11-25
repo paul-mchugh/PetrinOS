@@ -32,6 +32,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	pcb[pid].tf_p -> cs = get_cs();						// duplicate from CPU
 	pcb[pid].tf_p -> eip = DRAM_START + STACK_MAX*pid;	// where code copied
 	pcb[pid].Dir = KDir; //Kernel initialized & forked process are run in real memory
+	pages[pid].pid=pid;
 }
 
 // count run time and switch if hitting time limit
@@ -362,7 +363,7 @@ void SysWait(void)
 		EnQue(zpid, &avail_que);
 		//wipe out own pages
 		for(i=0;i<PAGE_MAX;i++)
-			if(pages[i].pid==run_pid) pages[i].pid = NONE;
+			if(pages[i].pid==zpid) pages[i].pid = NONE;
 	}
 	else
 	{
@@ -433,7 +434,7 @@ void SysVfork(void)
 	pcb[pid].ppid = run_pid;
 
 	//find pages
-	for(i=16;i<PAGE_MAX;i++)
+	for(i=0;i<PAGE_MAX;i++)
 	{
 		if(pages[i].pid!=NONE) continue;
 		else if(!Dir) Dir=i;
@@ -462,7 +463,7 @@ void SysVfork(void)
 	pcb[pid].Dir = pages[Dir].u.addr;
 
 	//IT page
-	pages[IT].u.entry[0] = pages[IP].u.addr|dFlags;		//link ins table
+	pages[IT].u.entry[0] = pages[IP].u.addr|RO|PRESENT;	//link ins table
 
 	//DT page
 	pages[DT].u.entry[1023] = pages[DP].u.addr|dFlags;	//link data table
