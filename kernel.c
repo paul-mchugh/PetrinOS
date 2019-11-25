@@ -9,6 +9,8 @@
 #include "ksr.h"		// kernel service routines
 #include "proc.h"		// all user process code here
 
+void TTYinit(void);
+
 // declare kernel data
 int run_pid;					// current running PID
 unsigned short *sys_cursor;		// pointer to the current place pointed to by the cursor
@@ -34,6 +36,7 @@ void BootStrap(void)	// set up kernel!
 	Bzero((char *)&ready_que, sizeof(que_t));
 	Bzero((char *)&video_mutex, sizeof(mutex_t));
 	Bzero((char *)&kb, sizeof(kb_t));
+	Bzero((char *)&tty, sizeof(tty_t));
 	//enqueue all the available PID numbers to avail queue(none yet)
 	for(i=0;i<PROC_MAX;i++) EnQue(i,&avail_que);
 
@@ -117,3 +120,32 @@ void Kernel(tf_t *tf_p)		// kernel runs
 	Loader(pcb[run_pid].tf_p);
 }
 
+void TTYinit(void) {
+	int i, j;
+
+	Bzero((char *)&tty, sizeof(tty_t));
+	tty.port = TTY0;
+
+	outportb(tty.port+CFCR, CFCR_DLAB);             // CFCR_DLAB is 0x80
+	outportb(tty.port+BAUDLO, LOBYTE(115200/9600)); // period of each of 9600 bauds
+	outportb(tty.port+BAUDHI, HIBYTE(115200/9600));
+	outportb(tty.port+CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
+
+	outportb(tty.port+IER, 0);
+	outportb(tty.port+MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+
+	for(i=0; i<166667; i++)asm("inb $0x80");       // wait .1 sec
+	outportb(tty.port+IER, IER_ERXRDY|IER_ETXRDY); // enable TX & RX intr
+	for(i=0; i<166667; i++)asm("inb $0x80");       // wait .1 sec
+
+	for(j=0; j<3; j++) {                           // clear 3 lines
+		outportb(tty.port, 'V');
+		for(i=0; i<83333; i++)asm("inb $0x80");     // wait .5 sec should do
+		outportb(tty.port, '\n');
+		for(i=0; i<83333; i++)asm("inb $0x80");
+		outportb(tty.port, '\r');
+		for(i=0; i<83333; i++)asm("inb $0x80");
+	}
+	inportb(tty.port);                             // get 1st key PROCOMM logo
+	for(i=0; i<83333; i++)asm("inb $0x80");        // wait .5 sec
+}

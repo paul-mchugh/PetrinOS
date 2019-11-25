@@ -185,15 +185,14 @@ void SysWrite(void)
 {
 	int row;
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
-
+	char *tstr = tty.str;
 	// TTY
 	if (pcb[run_pid].STDOUT == TTY) {
-		unsigned cnt;
-		cntr = 0;
 		// copy the string address to the 'str" in 'tty'
-		while (*(str + cntr) != '\0') {
-			*(tty.str + cntr) = *(str + cntr)
-			cntr++;
+		while (*str != '\0') {
+			*tstr = *str;
+			tstr++;
+			str++;
 		}
 		// suspend the process in the wait queue of 'tty'
 		EnQue(run_pid, &tty.wait_que);
@@ -234,7 +233,7 @@ void SysWrite(void)
 	}
 	// panic
 	else {
-		KPANIC_UNCOND("Panic: no such device!");
+		KPANIC_UCOND("Panic: no such device!");
 	}
 }
 
@@ -509,10 +508,22 @@ void SysVfork(void)
 }
 
 void TTYSR() {
-	int pid;
+	int pid, i;
+	char *tstr = tty.str;
 	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
-	if (QueEmpty(&tty.wait_que)
+	if (QueEmpty(&tty.wait_que))
 		return;
-	pid = DeQue(&tty.wait_que);
-	// still needs to be finished
+	pid = tty.wait_que.que[0];	// reading, not DeQue-ing
+	// (virtual memory switching, in order to use string addr)
+	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
+	if (*tstr != '\0') {
+		outportb(tty.port, *tstr);
+		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
+		tstr++;
+	} else {
+		pid = DeQue(&tty.wait_que); // already set but who cares
+		pcb[pid].state = READY;
+		EnQue(pid, &ready_que);
+	}
+	set_cr3(pcb[run_pid].Dir);	// switching address space back to running process.
 }

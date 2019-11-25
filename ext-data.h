@@ -21,5 +21,6 @@ extern mutex_t video_mutex;
 extern kb_t kb;
 extern unsigned int KDir;
 extern page_t pages[PAGE_MAX];
+extern tty_t tty;
 
 #endif

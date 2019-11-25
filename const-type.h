@@ -112,7 +112,7 @@ typedef struct
 
 typedef struct
 {
-	char *str;
+	char str[STR_MAX];
 	que_t wait_que;
 	int port;
 } tty_t;

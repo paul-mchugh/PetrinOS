@@ -12,6 +12,7 @@ __BEGIN_DECLS
 
 void TimerEntry(void);		// coded in entry.S, assembler won't like this syntax
 void SyscallEntry(void);	// implemented in entry.S
+void TTYEntry(void);
 void Loader(tf_t *);		// coded in entry.S
 
 __END_DECLS
