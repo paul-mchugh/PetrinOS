@@ -8,9 +8,9 @@
 void SpawnSR(func_p_t p);
 void TimerSR(void);
 void SyscallSR(void);
-void TTYSR(void);
 void AlterStack(int pid, func_p_t p);
 void KBSR(void);
+void TTYSR(void);
 void SysSleep(void);
 void SysWrite(void);
 void SysSetCursor(void);

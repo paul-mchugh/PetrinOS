@@ -39,8 +39,8 @@ ENTRY(SyscallEntry)					// similar to timer entry
 	cld
 	call CNAME(Kernel)
 
-ENTRY(TTYEntry)					
-	pushl $35		
+ENTRY(TTYEntry)
+	pushl $35
 	pusha
 	movl %esp, %ecx
 	movw $0x10, %ax

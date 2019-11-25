@@ -20,10 +20,7 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	pcb[pid].state = READY;
 
 	// handling STDOUT
-	if (pid == IDLE)
-		pcb[pid].STDOUT = CONSOLE;
-	else 
-		pcb[pid].STDOUT = TTY;
+	pcb[pid].STDOUT = (pid==IDLE) ? CONSOLE : TTY;
 
 	//if 'pid' is not IDLE, use a tool function to enqueue it to the ready queue
 	if(pid != IDLE) EnQue(pid, &ready_que);
@@ -173,6 +170,28 @@ void KBSR(void) {
 	}
 }
 
+void TTYSR()
+{
+	int pid, i;
+	char *tstr = tty.str;
+	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
+	if (QueEmpty(&tty.wait_que))
+		return;
+	pid = tty.wait_que.que[0];	// reading, not DeQue-ing
+	// (virtual memory switching, in order to use string addr)
+	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
+	if (*tstr != '\0') {
+		outportb(tty.port, *tstr);
+		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
+		tstr++;
+	} else {
+		pid = DeQue(&tty.wait_que); // already set but who cares
+		pcb[pid].state = READY;
+		EnQue(pid, &ready_que);
+	}
+	set_cr3(pcb[run_pid].Dir);	// switching address space back to running process.
+}
+
 void SysSleep(void)
 {
 	int sleep_sec = pcb[run_pid].tf_p->ebx;
@@ -185,15 +204,11 @@ void SysWrite(void)
 {
 	int row;
 	char *str = (char *) pcb[run_pid].tf_p->ebx;
-	char *tstr = tty.str;
-	// TTY
-	if (pcb[run_pid].STDOUT == TTY) {
+
+	if (pcb[run_pid].STDOUT == TTY)				// TTY
+	{
 		// copy the string address to the 'str" in 'tty'
-		while (*str != '\0') {
-			*tstr = *str;
-			tstr++;
-			str++;
-		}
+		tty.str=str;
 		// suspend the process in the wait queue of 'tty'
 		EnQue(run_pid, &tty.wait_que);
 		pcb[run_pid].state = IO_WAIT;
@@ -201,9 +216,8 @@ void SysWrite(void)
 		TTYSR();
 		return; // if STDOUT is true, don't do anything else
 	}
-	
-	// CONSOLE
-	else if (pcb[run_pid].STDOUT == CONSOLE) {
+	else if (pcb[run_pid].STDOUT == CONSOLE)	// CONSOLE
+	{
 		while (*str != '\0')
 		{
 			if (*str == '\r')
@@ -231,8 +245,8 @@ void SysWrite(void)
 			sys_cursor = VIDEO_START;
 		}
 	}
-	// panic
-	else {
+	else	// panic
+	{
 		KPANIC_UCOND("Panic: no such device!");
 	}
 }
@@ -505,25 +519,4 @@ void SysVfork(void)
 	pages[DP].u.entry[1023] = EF_DEFAULT_VALUE|EF_INTR;
 	pages[DP].u.entry[1022] = get_cs();
 	pages[DP].u.entry[1021] = G1;
-}
-
-void TTYSR() {
-	int pid, i;
-	char *tstr = tty.str;
-	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
-	if (QueEmpty(&tty.wait_que))
-		return;
-	pid = tty.wait_que.que[0];	// reading, not DeQue-ing
-	// (virtual memory switching, in order to use string addr)
-	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
-	if (*tstr != '\0') {
-		outportb(tty.port, *tstr);
-		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
-		tstr++;
-	} else {
-		pid = DeQue(&tty.wait_que); // already set but who cares
-		pcb[pid].state = READY;
-		EnQue(pid, &ready_que);
-	}
-	set_cr3(pcb[run_pid].Dir);	// switching address space back to running process.
 }
