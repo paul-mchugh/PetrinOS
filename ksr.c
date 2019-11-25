@@ -147,7 +147,8 @@ void AlterStack(int pid, func_p_t p)
 	set_cr3(pcb[run_pid].Dir);	//change address space to the callers pid
 }
 
-void KBSR(void) {
+void KBSR(void)
+{
 	char nc;
 	int pid;
 	if (!cons_kbhit())	// if nothing, return
@@ -173,23 +174,36 @@ void KBSR(void) {
 void TTYSR()
 {
 	int pid, i;
-	char *tstr = tty.str;
+	unsigned int cr3Copy;
 	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
 	if (QueEmpty(&tty.wait_que))
 		return;
 	pid = tty.wait_que.que[0];	// reading, not DeQue-ing
 	// (virtual memory switching, in order to use string addr)
+	cr3Copy = get_cr3();
 	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
-	if (*tstr != '\0') {
-		outportb(tty.port, *tstr);
+	if (*tty.str != '\0')
+	{
+		if(*tty.str!='\r')
+		{
+			outportb(tty.port, *tty.str);
+		}
+		else
+		{
+			outportb(tty.port, '\n');
+			for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
+			outportb(tty.port, '\r');
+		}
 		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
-		tstr++;
-	} else {
+		tty.str++;
+	}
+	else
+	{
 		pid = DeQue(&tty.wait_que); // already set but who cares
 		pcb[pid].state = READY;
 		EnQue(pid, &ready_que);
 	}
-	set_cr3(pcb[run_pid].Dir);	// switching address space back to running process.
+	set_cr3(cr3Copy);			// switching address space back to running process.
 }
 
 void SysSleep(void)
@@ -214,7 +228,6 @@ void SysWrite(void)
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;
 		TTYSR();
-		return; // if STDOUT is true, don't do anything else
 	}
 	else if (pcb[run_pid].STDOUT == CONSOLE)	// CONSOLE
 	{

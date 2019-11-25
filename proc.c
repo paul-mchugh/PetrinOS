@@ -63,7 +63,8 @@ void Init(void)
 	}
 	pid = sys_get_pid();
 	Number2Str(pid, pid_str);
-	if (forked > 0) {
+	if (forked > 0)
+	{
 		sys_sleep(10);
 		sys_kill(0, SIGCONT);
 		while(1)
