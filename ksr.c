@@ -187,15 +187,13 @@ void TTYSR()
 		if(*tty.str!='\r')
 		{
 			outportb(tty.port, *tty.str);
+			tty.str++;
 		}
 		else
 		{
-			outportb(tty.port, '\n');
-			for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
 			outportb(tty.port, '\r');
+			*tty.str = '\n'
 		}
-		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
-		tty.str++;
 	}
 	else
 	{
