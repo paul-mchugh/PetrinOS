@@ -79,6 +79,7 @@ typedef struct
 	unsigned int Dir;
 	func_p_t signal_handler[32];
 	int STDOUT;
+	int STDIN;
 } pcb_t;
 
 typedef struct
@@ -112,9 +113,12 @@ typedef struct
 
 typedef struct
 {
-	char* str;
-	que_t wait_que;
-	int port;
+	char* dsp_str;		// previously "str"
+	que_t dsp_wait_que;	// previously "wait_que"
+	int port;	
+	char *kb_str;
+	que_t kb_wait_que;
+	que_t echo;
 } tty_t;
 
 #endif							// to prevent name mangling
