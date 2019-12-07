@@ -174,8 +174,7 @@ void KBSR(void)
 
 void TTYdspSR()
 {
-	int pid, i;
-	unsigned int cr3Copy;
+	int pid;
 	//outportb(PIC_CONT_REG, TTY_SERVED_VAL);
 	if (!QueEmpty(&tty.echo)) {
 		char out;
@@ -187,7 +186,6 @@ void TTYdspSR()
             return;
 	pid = tty.dsp_wait_que.que[0];	// reading, not DeQue-ing
 	// (virtual memory switching, in order to use string addr)
-	cr3Copy = get_cr3();
 	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
 	if (*tty.dsp_str != '\0')
 	{
@@ -226,13 +224,11 @@ void TTYkbSR() {
 	char chin;
 	int wpid;
 	int rpid;
-	unsigned int cr3Copy;
 	chin = inportb(tty.port);
 	if (QueEmpty(&tty.kb_wait_que))
 		return;
 	EnQue(chin,&tty.echo);
 	wpid = tty.kb_wait_que.que[0];	// reading, not DeQue-ing
-	cr3Copy = get_cr3();
 	set_cr3(pcb[wpid].Dir);
 	if (chin != '\r') {
 		*tty.kb_str = chin;
