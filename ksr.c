@@ -168,7 +168,6 @@ void KBSR(void)
 		pcb[pid].state = READY;
 		set_cr3(pcb[pid].Dir);		//set the address space to the receiving process
 		pcb[pid].tf_p->ebx = (int)nc;
-		set_cr3(pcb[run_pid].Dir);	//restore the interrupted processes address space
 		EnQue(pid, &ready_que);
 	}
 }
@@ -177,12 +176,15 @@ void TTYdspSR()
 {
 	int pid, i;
 	unsigned int cr3Copy;
-	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
-	if (!QueEmpty(&tty.echo))
+	//outportb(PIC_CONT_REG, TTY_SERVED_VAL);
+	if (!QueEmpty(&tty.echo)) {
 		char out;
 		out = DeQue(&tty.echo);
 		outportb(tty.port, out);
 		return;
+    }
+    if (QueEmpty(&tty.dsp_wait_que))
+            return;
 	pid = tty.dsp_wait_que.que[0];	// reading, not DeQue-ing
 	// (virtual memory switching, in order to use string addr)
 	cr3Copy = get_cr3();
@@ -195,11 +197,8 @@ void TTYdspSR()
 		}
 		else
 		{
-			outportb(tty.port, '\n');
-			for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
 			outportb(tty.port, '\r');
 		}
-		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
 		tty.dsp_str++;
 	}
 	else
@@ -208,11 +207,10 @@ void TTYdspSR()
 		pcb[pid].state = READY;
 		EnQue(pid, &ready_que);
 	}
-	set_cr3(cr3Copy);			// switching address space back to running process.
 }
 
 void TTYSR() {
-	int status;
+	char status;
 	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
 	status = inportb(tty.port+IIR);
 	if (status == IIR_TXRDY) {
@@ -232,13 +230,13 @@ void TTYkbSR() {
 	chin = inportb(tty.port);
 	if (QueEmpty(&tty.kb_wait_que))
 		return;
-	EnQue('\r',&tty.echo);
+	EnQue(chin,&tty.echo);
 	wpid = tty.kb_wait_que.que[0];	// reading, not DeQue-ing
 	cr3Copy = get_cr3();
 	set_cr3(pcb[wpid].Dir);
 	if (chin != '\r') {
-		*kb_str = chin;
-		kb_str++;
+		*tty.kb_str = chin;
+		tty.kb_str++;
 	}
 	else {
 		EnQue('\n', &tty.echo);
@@ -247,7 +245,6 @@ void TTYkbSR() {
 		EnQue(rpid, &ready_que);
 		pcb[rpid].state = READY;
 	}
-	set_cr3(cr3Copy);
 }
 
 void SysSleep(void)
@@ -516,7 +513,8 @@ void SysRead(void)
 		}
 	}
 	else if (pcb[run_pid].STDIN == TTY) {
-		tty.kb_str = pcb[run_pid].tf_p->ebx;
+		//tty.kb_str =(char *) &(pcb[run_pid].tf_p->ebx);
+		tty.kb_str =(char *) pcb[run_pid].tf_p->ebx;
 		EnQue(run_pid, &tty.kb_wait_que);
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;

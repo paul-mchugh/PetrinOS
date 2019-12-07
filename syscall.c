@@ -172,11 +172,11 @@ void sys_kill(int pid, int signal_name)
 
 void sys_read(char *str)
 {
-		asm("movl %1, %%eax;
-			movb %%ebx, %0;
+		asm("movl %0, %%eax;
+			movl  %1, %%ebx;
 			int $128;"
-			: "=g" (str)
-			: "g" (SYS_READ)
+			:  
+			: "g" (SYS_READ), "g"((int)str)
 			: "eax", "ebx"
 		);
 }
