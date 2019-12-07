@@ -12,6 +12,7 @@
 void SpawnSR(func_p_t p)// arg: where process code starts
 {
 	int pid;
+	unsigned term;
 
 	KPANIC(QueEmpty(&avail_que),"Panic: out of PID!\n");
 
@@ -19,9 +20,10 @@ void SpawnSR(func_p_t p)// arg: where process code starts
 	Bzero((char*)&pcb[pid],sizeof(pcb_t));
 	pcb[pid].state = READY;
 
-	// handling STDOUT
-	pcb[pid].STDOUT = (pid==IDLE) ? CONSOLE : TTY;
-
+	// handling STDIN/STDOUT
+        term = (pid==IDLE) ? CONSOLE : TTY;
+	pcb[pid].STDOUT = term;
+	pcb[pid].STDIN = term;
 	//if 'pid' is not IDLE, use a tool function to enqueue it to the ready queue
 	if(pid != IDLE) EnQue(pid, &ready_que);
 
@@ -166,44 +168,79 @@ void KBSR(void)
 		pcb[pid].state = READY;
 		set_cr3(pcb[pid].Dir);		//set the address space to the receiving process
 		pcb[pid].tf_p->ebx = (int)nc;
-		set_cr3(pcb[run_pid].Dir);	//restore the interrupted processes address space
 		EnQue(pid, &ready_que);
 	}
 }
 
-void TTYSR()
+void TTYdspSR()
 {
-	int pid, i;
-	unsigned int cr3Copy;
-	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
-	if (QueEmpty(&tty.wait_que))
+	int pid;
+	//outportb(PIC_CONT_REG, TTY_SERVED_VAL);
+	if (!QueEmpty(&tty.echo)) {
+		char out;
+		out = DeQue(&tty.echo);
+		outportb(tty.port, out);
 		return;
-	pid = tty.wait_que.que[0];	// reading, not DeQue-ing
+    }
+    if (QueEmpty(&tty.dsp_wait_que))
+            return;
+	pid = tty.dsp_wait_que.que[0];	// reading, not DeQue-ing
 	// (virtual memory switching, in order to use string addr)
-	cr3Copy = get_cr3();
 	set_cr3(pcb[pid].Dir);	// switching address space to waiting process.
-	if (*tty.str != '\0')
+	if (*tty.dsp_str != '\0')
 	{
-		if(*tty.str!='\r')
+		if(*tty.dsp_str!='\r')
 		{
-			outportb(tty.port, *tty.str);
+			outportb(tty.port, *tty.dsp_str);
 		}
 		else
 		{
-			outportb(tty.port, '\n');
-			for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
 			outportb(tty.port, '\r');
 		}
-		for(i=0; i<83333; i++)asm("inb $0x80");	// waiting the half a second
-		tty.str++;
+		tty.dsp_str++;
 	}
 	else
 	{
-		pid = DeQue(&tty.wait_que); // already set but who cares
+		pid = DeQue(&tty.dsp_wait_que); // already set but who cares
 		pcb[pid].state = READY;
 		EnQue(pid, &ready_que);
 	}
-	set_cr3(cr3Copy);			// switching address space back to running process.
+}
+
+void TTYSR() {
+	char status;
+	outportb(PIC_CONT_REG, TTY_SERVED_VAL);
+	status = inportb(tty.port+IIR);
+	if (status == IIR_TXRDY) {
+		TTYdspSR();
+	}
+	else if (status == IIR_RXRDY) {
+		TTYkbSR();
+		TTYdspSR();
+	}
+}
+
+void TTYkbSR() {
+	char chin;
+	int wpid;
+	int rpid;
+	chin = inportb(tty.port);
+	if (QueEmpty(&tty.kb_wait_que))
+		return;
+	EnQue(chin,&tty.echo);
+	wpid = tty.kb_wait_que.que[0];	// reading, not DeQue-ing
+	set_cr3(pcb[wpid].Dir);
+	if (chin != '\r') {
+		*tty.kb_str = chin;
+		tty.kb_str++;
+	}
+	else {
+		EnQue('\n', &tty.echo);
+		*tty.kb_str = '\0';
+		rpid = DeQue(&tty.kb_wait_que);
+		EnQue(rpid, &ready_que);
+		pcb[rpid].state = READY;
+	}
 }
 
 void SysSleep(void)
@@ -222,12 +259,12 @@ void SysWrite(void)
 	if (pcb[run_pid].STDOUT == TTY)				// TTY
 	{
 		// copy the string address to the 'str" in 'tty'
-		tty.str=str;
+		tty.dsp_str=str;
 		// suspend the process in the wait queue of 'tty'
-		EnQue(run_pid, &tty.wait_que);
+		EnQue(run_pid, &tty.dsp_wait_que);
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;
-		TTYSR();
+		TTYdspSR();
 	}
 	else if (pcb[run_pid].STDOUT == CONSOLE)	// CONSOLE
 	{
@@ -457,17 +494,30 @@ void SysKill(void)
 
 void SysRead(void)
 {
-	char nc;
-	if (!QueEmpty(&kb.buffer))				// checks if kb buffer is empty
-	{
-		nc = (char)DeQue(&kb.buffer);		// takes next char in the buffer, BL from EBX
-		pcb[run_pid].tf_p->ebx = (int) nc;	// places BL back into EBX
+	if (pcb[run_pid].STDIN == CONSOLE) {
+		char nc;
+		if (!QueEmpty(&kb.buffer))			// checks if kb buffer is empty
+		{
+			nc = (char)DeQue(&kb.buffer);		// takes next char in the buffer, BL from EBX
+			pcb[run_pid].tf_p->ebx = (int) nc;	// places BL back into EBX
+		}
+		else
+		{
+			EnQue(run_pid, &kb.wait_que);
+			pcb[run_pid].state = IO_WAIT;
+			run_pid = NONE;
+		}
 	}
-	else
-	{
-		EnQue(run_pid, &kb.wait_que);
+	else if (pcb[run_pid].STDIN == TTY) {
+		//tty.kb_str =(char *) &(pcb[run_pid].tf_p->ebx);
+		tty.kb_str =(char *) pcb[run_pid].tf_p->ebx;
+		EnQue(run_pid, &tty.kb_wait_que);
 		pcb[run_pid].state = IO_WAIT;
 		run_pid = NONE;
+	}
+	else {
+		KPANIC_UCOND("Kernel Panic: no such device");
+		breakpoint();
 	}
 }
 

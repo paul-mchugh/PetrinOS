@@ -131,16 +131,16 @@ void Login(void)
 	{
 		sys_write("login: ");
 		sys_read(login_str);
-		sys_write("passwd: ");
+		sys_write("\rpasswd: ");
 		sys_read(passwd_str);
 		if (StrCmp(login_str, passwd_str)==0)		// security >_<
 		{
-			sys_write("login successful!\r");
+			sys_write("\rlogin successful!\r\n");
 			break;	// phase8
 		}
 		else
 		{
-			sys_write("login failed!\r");
+			sys_write("\rlogin failed!\r\n");
 		}
 	}
 	sys_vfork(Shell);		// phase8
@@ -175,36 +175,36 @@ void Shell(void)
 			sys_write(ePidStr);
 			sys_write("   Exit Code: ");
 			sys_write(progEcStr);
-			sys_write("\r");
+			sys_write("\r\n");
 		}
 		else
 		{
-			sys_write("   Valid commands are:\r      dir -- displays directory content.\r      cal -- displays calendar.\r      roll -- roll a pair of dice.\r");
+			sys_write("   Valid commands are:\r\n      dir -- displays directory content.\r\n      cal -- displays calendar.\r\n      roll -- roll a pair of dice.\r\n");
 		}
 	}
 }
 
 void ShellDir(void)
 {
-	sys_write("\
-   drwx 4096 ./\r\
-   drwx 4096 ../\r\
-   drwx   28 README.md/\r\
-   drwx 1311 GDB159.RC/\r\
-   drwx   40 .gitignore/\r\
+	sys_write("\r\n\
+   drwx 4096 ./\r\n\
+   drwx 4096 ../\r\n\
+   drwx   28 README.md/\r\n\
+   drwx 1311 GDB159.RC/\r\n\
+   drwx   40 .gitignore/\r\n\
 ");
 	sys_exit(0);
 }
 
 void ShellCal(void)
 {
-	sys_write("\
-      November 2019    \r\
-                   1  2\r\
-    3  4  5  6  7  8  9\r\
-   10 11 12 13 14 15 16\r\
-   17 18 19 20 21 22 23\r\
-   24 25 26 27 28 29 30\r\
+	sys_write("\r\n\
+      November 2019    \r\n\
+                   1  2\r\n\
+    3  4  5  6  7  8  9\r\n\
+   10 11 12 13 14 15 16\r\n\
+   17 18 19 20 21 22 23\r\n\
+   24 25 26 27 28 29 30\r\n\
 ");
 	sys_exit(0);
 }

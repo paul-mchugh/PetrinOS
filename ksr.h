@@ -11,6 +11,8 @@ void SyscallSR(void);
 void AlterStack(int pid, func_p_t p);
 void KBSR(void);
 void TTYSR(void);
+void TTYdspSR(void);
+void TTYkbSR(void);
 void SysSleep(void);
 void SysWrite(void);
 void SysSetCursor(void);
